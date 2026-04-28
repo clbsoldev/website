@@ -738,13 +738,14 @@ def build_svg(
         return ccx, ccy
 
     def render_vm_card(x, y, vm):
-        ccx = x + VM_W // 2
+        ccx    = x + VM_W // 2
+        status = vm.get("status", "active")
+        bdr    = C["lab"] if status == "active" else C["off"]
         a(f'<rect x="{x}" y="{y}" width="{VM_W}" height="{VM_H}" rx="2" '
-          f'fill="{C["vm_bg"]}" stroke="{C["vm_bdr"]}" stroke-width="1" '
+          f'fill="{C["vm_bg"]}" stroke="{bdr}" stroke-width="1" '
           f'stroke-dasharray="2,2"/>')
         nls = _wrap(vm["name"], 18)[:2]
         nh  = len(nls) * 12
-        # description — allow more chars, no shortening
         dls = _desc_lines(vm.get("description",""), 22)
         th  = nh + (len(dls)*10+3 if dls else 0)
         sy  = y + (VM_H - th) // 2 + 11
@@ -949,7 +950,7 @@ def build_svg(
                 f'<line x1="{ax}" y1="{ay}" x2="{bx2}" y2="{by2}" '
                 f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.7"/>')
 
-    # ── VPN tunnels — rendered last so they appear on top ──────────────────────
+    # ── VPN tunnels ────────────────────────────────────────────────────────────
     tunnel_elems: list[str] = []
     for (na, nb_, label, style) in tunnels:
         if na in pos_index and nb_ in pos_index:
@@ -971,23 +972,20 @@ def build_svg(
                 f'fill="{color}" font-size="7" font-weight="600" letter-spacing="0.5">'
                 f'{lk}{_xml(label)}</text>')
 
-    # Insertion order (SVG painter's model, later = on top):
-    # [0] background rect
-    # [1] Internet band (below everything)
-    # [2] conn_lines (cables, VM connectors)
-    # [3] all zone boxes + cards (already in svg list)
-    # tunnel_elems appended at end = always on top
-    if conn_lines:
-        svg.insert(2, "\n".join(conn_lines))
-    if inet_elems:
-        svg.insert(2, "\n".join(inet_elems))
-    if tunnel_elems:
-        # Append before closing </svg>
-        for te in tunnel_elems:
-            a(te)
-
-    a('</svg>')
-    return "\n".join(svg)
+    # ── Final SVG assembly (painter's model — order = z-order) ────────────────
+    # Rebuild svg with correct layer order:
+    # 1. background rect (already svg[0] and svg[1])
+    # 2. inet_elems  — Internet band rect sits BELOW the tunnel line
+    # 3. conn_lines  — cables and VM connectors
+    # 4. zone boxes + cards (already appended to svg above)
+    # 5. tunnel_elems — WireGuard on top of everything
+    final_svg: list[str] = svg[:2]           # <svg> opening + background rect
+    final_svg += inet_elems                  # Internet band (below all lines)
+    final_svg += conn_lines                  # cables / VM connectors
+    final_svg += svg[2:]                     # zone boxes + cards already rendered
+    final_svg += tunnel_elems               # WireGuard tunnel always on top
+    final_svg.append('</svg>')
+    return "\n".join(final_svg)
 
 
 def main() -> None:
