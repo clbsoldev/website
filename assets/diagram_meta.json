@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-04-28 12:11 UTC",
+  "source": "netbox",
+  "saas_count": 3,
+  "device_count": 13,
+  "pub_nodes": 0,
+  "lab_nodes": 8,
+  "vm_count": 5,
+  "cable_count": 7,
+  "tunnel_count": 1,
+  "tunnel_source": "netbox",
+  "filter_tags": {
+    "public": "diagram-public",
+    "homelab": "diagram-homelab",
+    "exclude": "diagram-exclude",
+    "no_vms": "diagram-no-vms"
+  }
+}
