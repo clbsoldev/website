@@ -1,5 +1,5 @@
-<svg viewBox="0 0 1100 1336" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
-<rect width="1100" height="1336" fill="#0a0e14"/>
+<svg viewBox="0 0 1100 1182" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+<rect width="1100" height="1182" fill="#0a0e14"/>
 <line x1="644" y1="648" x2="644" y2="664" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="644" y1="664" x2="644" y2="664" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="446" y1="1024" x2="446" y2="1040" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
@@ -43,7 +43,7 @@
 <line x1="285" y1="244" x2="550" y2="273" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
 <line x1="815" y1="244" x2="550" y2="273" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
 <line x1="550" y1="325" x2="550" y2="354" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
-<rect x="28" y="354" width="1044" height="946" rx="2" fill="none" stroke="#00e5a0" stroke-width="1" stroke-dasharray="4,4"/>
+<rect x="28" y="354" width="1044" height="792" rx="2" fill="none" stroke="#00e5a0" stroke-width="1" stroke-dasharray="4,4"/>
 <text x="38" y="369" fill="#00e5a0" font-size="8" letter-spacing="2">HOME LAB</text>
 <rect x="465" y="412" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="550" y="440" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">UXG-Fiber</text>
@@ -88,9 +88,4 @@
 <text x="738" y="970" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-sw201</text>
 <text x="738" y="987" text-anchor="middle" fill="#5a7a94" font-size="7">Cisco Switch for Webex Calling</text>
 <text x="738" y="998" text-anchor="middle" fill="#5a7a94" font-size="7">Endpoints</text>
-<rect x="455" y="1140" width="190" height="106" rx="3" fill="none" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="3,3"/>
-<text x="550" y="1150" text-anchor="middle" fill="#5a7a94" font-size="7" letter-spacing="1">hau-hypcl01</text>
-<rect x="465" y="1164" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="550" y="1198" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-lgw01</text>
-<text x="550" y="1215" text-anchor="middle" fill="#5a7a94" font-size="7">Webex Local Gateway</text>
 </svg>
