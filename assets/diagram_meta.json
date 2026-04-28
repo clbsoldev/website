@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-28 18:21 UTC",
+  "generated_at": "2026-04-28 18:41 UTC",
   "source": "netbox",
   "saas_count": 3,
   "device_count": 19,
@@ -8,7 +8,7 @@
   "vm_count": 3,
   "cable_count": 7,
   "tunnel_count": 1,
-  "tunnel_source": "fallback",
+  "tunnel_source": "netbox",
   "filter_tags": {
     "public": "diagram-public",
     "homelab": "diagram-homelab",
