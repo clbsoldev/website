@@ -775,19 +775,28 @@ def build_svg(
             node["name"], node.get("description",""), bdr)
         pos_index[node["name"]] = (ccx, ccy)
 
-    # ── Internet ───────────────────────────────────────────────────────────────
+    # ── Internet band (rendered into svg list directly so it sits BELOW conn_lines) ──
     inet_cx = W // 2
     inet_cy = inet_y + INTERNET_H // 2
-    a(f'<rect x="0" y="{inet_y}" width="{W}" height="{INTERNET_H}" fill="#0c1118"/>')
-    a(f'<ellipse cx="{inet_cx}" cy="{inet_cy}" rx="90" ry="26" '
-      f'fill="none" stroke="{C["border"]}" stroke-width="1.5"/>')
-    a(f'<text x="{inet_cx}" y="{inet_cy+5}" text-anchor="middle" '
-      f'fill="{C["dim"]}" font-size="11" letter-spacing="3">INTERNET</text>')
+    # Store Internet band elements in a separate list – inserted before conn_lines
+    inet_elems: list[str] = []
+    inet_elems.append(
+        f'<rect x="0" y="{inet_y}" width="{W}" height="{INTERNET_H}" fill="#0c1118"/>')
+    inet_elems.append(
+        f'<ellipse cx="{inet_cx}" cy="{inet_cy}" rx="90" ry="26" '
+        f'fill="none" stroke="{C["border"]}" stroke-width="1.5"/>')
+    inet_elems.append(
+        f'<text x="{inet_cx}" y="{inet_cy+5}" text-anchor="middle" '
+        f'fill="{C["dim"]}" font-size="11" letter-spacing="3">INTERNET</text>')
+    # Zone tops → Internet connectors
     for zcx in [saas_x + SAAS_W//2, pub_x + PUB_W//2]:
-        a(f'<line x1="{zcx}" y1="{top_y+top_h}" x2="{inet_cx}" y2="{inet_cy-26}" '
-          f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
-    a(f'<line x1="{inet_cx}" y1="{inet_cy+26}" x2="{inet_cx}" y2="{lab_y}" '
-      f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
+        inet_elems.append(
+            f'<line x1="{zcx}" y1="{top_y+top_h}" x2="{inet_cx}" y2="{inet_cy-26}" '
+            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
+    # Internet → Home Lab top (placeholder; UXG connector added after lab rendered)
+    inet_elems.append(
+        f'<line x1="{inet_cx}" y1="{inet_cy+26}" x2="{inet_cx}" y2="{lab_y}" '
+        f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
 
     # ── Home Lab: balanced-tree layout ─────────────────────────────────────────
     render_zone_box(ZONE_PAD, lab_y, LAB_W, lab_h, C["lab"], "HOME LAB")
@@ -797,22 +806,20 @@ def build_svg(
         rows_items = [_build_items(row) for row in rows]
         zone_cx    = ZONE_PAD + LAB_W // 2
 
-        # Assign x positions (balanced tree)
         name_cx = _assign_x_positions(rows_items, zone_cx)
 
         rendered_vms: set[str] = set()
         row_y = lab_y + ZONE_HDR + 14
 
         for row_idx, items in enumerate(rows_items):
-            # Row height: cluster box top (CLUSTER_PAD+14 above cards) + DH + CLUSTER_PAD below
-            card_y    = row_y + CLUSTER_PAD + 14   # actual card top
-            box_top_y = row_y                        # cluster box top
+            card_y    = row_y + CLUSTER_PAD + 14
+            box_top_y = row_y
             row_has_vms = False
 
             for it in items:
                 iw  = _item_width(it)
                 icx = it.get("_cx", zone_cx)
-                ix  = icx - iw // 2               # left edge of item
+                ix  = icx - iw // 2
 
                 if it["type"] == "solo":
                     node = it["nodes"][0]
@@ -820,7 +827,14 @@ def build_svg(
                     ccx, ccy = render_card(ix, card_y, node["name"],
                                            node.get("description",""), bdr)
                     pos_index[node["name"]] = (ccx, ccy)
-                    # Solo VMs
+
+                    # Add UXG-Fiber → Internet ellipse connector now that pos_index has it
+                    if node["name"] == HOMELAB_ROOT:
+                        conn_lines.append(
+                            f'<line x1="{ccx}" y1="{card_y}" '
+                            f'x2="{inet_cx}" y2="{inet_cy+26}" '
+                            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
+
                     vms = [v for v in node.get("vms",[]) if v["name"] not in rendered_vms]
                     if vms:
                         vm_tw = len(vms)*VM_W + (len(vms)-1)*VM_HGAP
@@ -849,18 +863,18 @@ def build_svg(
                     bh   = CLUSTER_PAD*2 + 14 + DH
                     bx   = icx - bw // 2
 
-                    # Draw cluster box
+                    # Cluster box — green border, slightly thicker
                     a(f'<rect x="{bx}" y="{box_top_y}" width="{bw}" height="{bh}" rx="3" '
-                      f'fill="none" stroke="{C["vm_bdr"]}" stroke-width="1" '
-                      f'stroke-dasharray="3,3"/>')
-                    # Cluster label — same font as card names but smaller, dim color
-                    a(f'<text x="{icx}" y="{box_top_y+10}" text-anchor="middle" '
-                      f'fill="{C["dim"]}" font-size="7" letter-spacing="1">'
+                      f'fill="none" stroke="{C["lab"]}" stroke-width="1.5" '
+                      f'stroke-dasharray="4,3"/>')
+                    # Cluster label — bold, head colour, same size as card names
+                    a(f'<text x="{icx}" y="{box_top_y+11}" text-anchor="middle" '
+                      f'fill="{C["head"]}" font-size="8" font-weight="600" letter-spacing="0.5">'
                       f'{_xml(cn)}</text>')
 
-                    inner_xs = []
                     total_inner = len(ms)*DW + (len(ms)-1)*HGAP
                     xi = icx - total_inner//2
+                    inner_xs = []
                     for _ in ms:
                         inner_xs.append(xi)
                         xi += DW + HGAP
@@ -871,7 +885,6 @@ def build_svg(
                                                node["name"], node.get("description",""), bdr2)
                         pos_index[node["name"]] = (ccx, ccy)
 
-                    # Cluster VMs — one shared row centred under box
                     primary = next((n for n in ms if n.get("cluster_primary")), ms[0])
                     vms = [v for v in primary.get("vms",[]) if v["name"] not in rendered_vms]
                     box_bottom = box_top_y + bh
@@ -905,29 +918,42 @@ def build_svg(
                 f'<line x1="{ax}" y1="{ay}" x2="{bx2}" y2="{by2}" '
                 f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.7"/>')
 
-    # ── VPN tunnels ────────────────────────────────────────────────────────────
+    # ── VPN tunnels — rendered last so they appear on top ──────────────────────
+    tunnel_elems: list[str] = []
     for (na, nb_, label, style) in tunnels:
         if na in pos_index and nb_ in pos_index:
-            ax, ay  = pos_index[na]
+            ax, ay   = pos_index[na]
             bx2, by2 = pos_index[nb_]
             color = C["acc"] if style == "wireguard" else C["dim"]
             dash  = "6,4"    if style == "wireguard" else "3,4"
             mx, my = (ax+bx2)//2, (ay+by2)//2
-            conn_lines.append(
+            tunnel_elems.append(
                 f'<line x1="{ax}" y1="{ay}" x2="{bx2}" y2="{by2}" '
-                f'stroke="{color}" stroke-width="1.5" '
-                f'stroke-dasharray="{dash}" opacity="0.9"/>')
+                f'stroke="{color}" stroke-width="2.5" '
+                f'stroke-dasharray="{dash}" opacity="1"/>')
             lk = "[WG] " if style == "wireguard" else ""
-            conn_lines.append(
+            tunnel_elems.append(
                 f'<rect x="{mx-42}" y="{my-9}" width="84" height="16" rx="2" '
                 f'fill="{C["bg"]}" stroke="{color}" stroke-width="1"/>')
-            conn_lines.append(
+            tunnel_elems.append(
                 f'<text x="{mx}" y="{my+3}" text-anchor="middle" '
-                f'fill="{color}" font-size="7" letter-spacing="0.5">'
+                f'fill="{color}" font-size="7" font-weight="600" letter-spacing="0.5">'
                 f'{lk}{_xml(label)}</text>')
 
+    # Insertion order (SVG painter's model, later = on top):
+    # [0] background rect
+    # [1] Internet band (below everything)
+    # [2] conn_lines (cables, VM connectors)
+    # [3] all zone boxes + cards (already in svg list)
+    # tunnel_elems appended at end = always on top
     if conn_lines:
         svg.insert(2, "\n".join(conn_lines))
+    if inet_elems:
+        svg.insert(2, "\n".join(inet_elems))
+    if tunnel_elems:
+        # Append before closing </svg>
+        for te in tunnel_elems:
+            a(te)
 
     a('</svg>')
     return "\n".join(svg)
