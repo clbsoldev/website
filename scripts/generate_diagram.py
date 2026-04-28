@@ -304,11 +304,29 @@ INTERNET_H  = 70           # height of the Internet row
 ZONE_PAD    = 28           # outer padding
 ZONE_HDR    = 20           # zone header text height
 
+def _xml(text: str) -> str:
+    """Escape text for safe embedding in SVG/XML. Removes non-XML-safe characters."""
+    # Standard XML entity escaping
+    text = text.replace("&", "&amp;")
+    text = text.replace("<", "&lt;")
+    text = text.replace(">", "&gt;")
+    text = text.replace('"', "&quot;")
+    # Strip characters outside the XML 1.0 legal range
+    # (keeps tabs, newlines, printable ASCII and most Unicode, removes surrogates etc.)
+    text = "".join(
+        c for c in text
+        if c == "\t" or c == "\n" or c == "\r"
+        or ("\x20" <= c <= "\ud7ff")
+        or ("\ue000" <= c <= "\ufffd")
+        or ("\U00010000" <= c <= "\U0010ffff")
+    )
+    return text
+
 def _wrap(t: str, w: int = 18) -> list[str]:
-    return textwrap.wrap(t, w) or [t]
+    return textwrap.wrap(_xml(t), w) or [_xml(t)[:w]]
 
 def _desc_lines(t: str, w: int = 24) -> list[str]:
-    return textwrap.wrap(t, w)[:2] if t else []
+    return textwrap.wrap(_xml(t), w)[:2] if t else []
 
 def _row_xs(count: int, zone_x: int, zone_w: int, cw: int, gap: int) -> list[int]:
     total = count * cw + max(0, count - 1) * gap
@@ -462,7 +480,7 @@ def build_svg(
     def render_zone_box(x: int, y: int, w: int, h: int, color: str, label: str) -> None:
         a(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="2" '
           f'fill="none" stroke="{color}" stroke-width="1" stroke-dasharray="4,4"/>')
-        a(f'<text x="{x+10}" y="{y+15}" fill="{color}" font-size="8" letter-spacing="2">{label}</text>')
+        a(f'<text x="{x+10}" y="{y+15}" fill="{color}" font-size="8" letter-spacing="2">{_xml(label)}</text>')
 
     # ── TOP ROW: SaaS (left) + Public (right) ─────────────────────────────────
 
@@ -540,7 +558,7 @@ def build_svg(
             )
             conn_lines.append(
                 f'<text x="{mid_x}" y="{mid_y+3}" text-anchor="middle" '
-                f'fill="{color}" font-size="7" letter-spacing="0.5">{lk}{label}</text>'
+                f'fill="{color}" font-size="7" letter-spacing="0.5">{lk}{_xml(label)}</text>'
             )
 
     # Insert connection lines right after background rect (index 2 = after <svg> + <rect>)
@@ -606,4 +624,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-  
