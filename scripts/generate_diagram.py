@@ -86,7 +86,8 @@ SAAS_NODES: list[dict] = [
     # },
 ]
 
-# Logical/overlay tunnels – FALLBACK ONLY.
+# Root device for Home Lab topology BFS (first in diagram, all others sorted by cable distance)
+HOMELAB_ROOT = "UXG-Fiber"
 # At runtime these are fetched from Netbox /vpn/tunnels/ automatically.
 # Only used when Netbox returns no tunnels or is unreachable.
 # Format: (device_name_A, device_name_B, label, style)
@@ -132,10 +133,16 @@ FALLBACK_HOMELAB: list[dict] = [
 #  Netbox API
 # ══════════════════════════════════════════════════════════════════════════════
 
-def nb_get(path: str) -> list:
+def nb_get(path: str, params: dict | None = None) -> list:
+    """Paginated GET. path should NOT contain '?'. Extra params go in `params`."""
     if not NETBOX_URL or not NETBOX_TOKEN:
         return []
-    url: str | None = f"{NETBOX_URL}/api{path}?limit=200"
+    base = f"{NETBOX_URL}/api{path}"
+    p = {"limit": "200"}
+    if params:
+        p.update(params)
+    query = "&".join(f"{k}={v}" for k, v in p.items())
+    url: str | None = f"{base}?{query}"
     results: list = []
     while url:
         req = urllib.request.Request(
@@ -157,151 +164,233 @@ def _tags(obj: dict) -> set[str]:
 def _str(obj: dict | None, key: str) -> str:
     return ((obj or {}).get(key) or "").strip()
 
+def _make_node(d: dict, tags: set[str], source: str = "device") -> dict:
+    """Build a unified node dict from a Netbox device or VM record."""
+    role_field = "device_role" if source == "device" else "role"
+    return {
+        "name":        d.get("name") or "unnamed",
+        "description": d.get("description") or _str(d.get(role_field), "name"),
+        "status":      _str(d.get("status"), "value") or "active",
+        "cluster_id":  (d.get("cluster") or {}).get("id"),
+        "cluster_name":(d.get("cluster") or {}).get("name") or "",
+        "no_vms":      TAG_NO_VMS in tags,
+        "source":      source,   # "device" or "vm"
+        "vms":         [],
+    }
+
 # ══════════════════════════════════════════════════════════════════════════════
 #  Fetch & classify
 # ══════════════════════════════════════════════════════════════════════════════
 
 def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tuple[str,str,str,str]], int]:
-    """
-    Returns:
-        pub_nodes, lab_nodes, cables, tunnels, raw_device_count
-    """
-    print("[INFO] Fetching /dcim/devices/ …")
-    raw_devices = nb_get("/dcim/devices/")
 
-    # Debug: print all tags found across all devices so we can verify slug names
+    # ── Step 1: Fetch tagged DEVICES ─────────────────────────────────────────
+    print("[INFO] Fetching devices tagged diagram-public …")
+    raw_pub_dev  = nb_get("/dcim/devices/", {"tag": TAG_PUBLIC})
+    print("[INFO] Fetching devices tagged diagram-homelab …")
+    raw_lab_dev  = nb_get("/dcim/devices/", {"tag": TAG_HOMELAB})
+
+    # ── Step 2: Fetch tagged VMs (VPS live here!) ─────────────────────────────
+    print("[INFO] Fetching VMs tagged diagram-public …")
+    raw_pub_vm   = nb_get("/virtualization/virtual-machines/", {"tag": TAG_PUBLIC})
+    print("[INFO] Fetching VMs tagged diagram-homelab …")
+    raw_lab_vm   = nb_get("/virtualization/virtual-machines/", {"tag": TAG_HOMELAB})
+
+    # ── Step 3: All devices for cable adjacency resolution ────────────────────
+    print("[INFO] Fetching all devices for cable/topology resolution …")
+    raw_all_dev  = nb_get("/dcim/devices/")
+    print("[INFO] Fetching all VMs for cluster mapping …")
+    raw_all_vm   = nb_get("/virtualization/virtual-machines/")
+
+    # Debug: show what tag slugs actually exist
     all_tag_slugs: set[str] = set()
-    for d in raw_devices:
+    for d in raw_all_dev + raw_all_vm:
         for t in (d.get("tags") or []):
             all_tag_slugs.add(t.get("slug", ""))
-    print(f"[DEBUG] All tag slugs found in Netbox: {sorted(all_tag_slugs)}")
-    print(f"[DEBUG] Looking for: '{TAG_PUBLIC}' and '{TAG_HOMELAB}'")
+    print(f"[DEBUG] All tag slugs in Netbox (devices+VMs): {sorted(all_tag_slugs)}")
+    print(f"[DEBUG] diagram-public  → {len(raw_pub_dev)} devices, {len(raw_pub_vm)} VMs: "
+          f"{[d.get('name') for d in raw_pub_dev + raw_pub_vm]}")
+    print(f"[DEBUG] diagram-homelab → {len(raw_lab_dev)} devices, {len(raw_lab_vm)} VMs: "
+          f"{[d.get('name') for d in raw_lab_dev + raw_lab_vm]}")
 
+    # ── Step 4: Build pub_nodes (devices + VMs tagged diagram-public) ─────────
     pub_nodes: list[dict] = []
-    lab_nodes: list[dict] = []
-
-    for d in raw_devices:
+    seen_pub: set[str] = set()
+    for d in raw_pub_dev:
         tags = _tags(d)
-        if TAG_EXCLUDE in tags:
+        if TAG_EXCLUDE in tags or d.get("name") in seen_pub:
             continue
-        in_pub = TAG_PUBLIC  in tags
-        in_lab = TAG_HOMELAB in tags
-        if not in_pub and not in_lab:
+        seen_pub.add(d["name"])
+        pub_nodes.append(_make_node(d, tags, source="device"))
+    for d in raw_pub_vm:
+        tags = _tags(d)
+        if TAG_EXCLUDE in tags or d.get("name") in seen_pub:
             continue
-        node = {
-            "name":        d.get("name") or "unnamed",
-            "description": d.get("description") or _str(d.get("device_role"), "name"),
-            "status":      _str(d.get("status"), "value") or "active",
-            "cluster_id":  (d.get("cluster") or {}).get("id"),
-            "no_vms":      TAG_NO_VMS in tags,
-            "sort_key":    d.get("name") or "",
-            "vms":         [],
-        }
-        if in_pub:
-            pub_nodes.append(node)
-        if in_lab:
-            lab_nodes.append(node)
+        seen_pub.add(d["name"])
+        pub_nodes.append(_make_node(d, tags, source="vm"))
+    pub_nodes.sort(key=lambda n: n["name"])
 
-    # Sort: public alphabetically, homelab: gateway first, then cluster hosts
-    # (cluster members = have a cluster_id), then rest alphabetically
-    pub_nodes.sort(key=lambda n: n["sort_key"])
-    lab_nodes.sort(key=lambda n: (
-        0 if any(kw in n["name"].lower() for kw in ("gateway", "gw", "uxg", "usg", "router")) else
-        1 if n["cluster_id"] else
-        2,
-        n["sort_key"]
-    ))
+    # ── Step 5: Build lab_nodes from tagged DEVICES only ─────────────────────
+    # Homelab devices are physical; their VMs come from cluster membership,
+    # not from the diagram-homelab tag on individual VMs.
+    lab_nodes_raw: list[dict] = []
+    seen_lab: set[str] = set()
+    for d in raw_lab_dev:
+        tags = _tags(d)
+        if TAG_EXCLUDE in tags or d.get("name") in seen_lab:
+            continue
+        seen_lab.add(d["name"])
+        lab_nodes_raw.append(_make_node(d, tags, source="device"))
 
-    print(f"[INFO] Tagged → public={len(pub_nodes)}, homelab={len(lab_nodes)} / {len(raw_devices)} total")
+    # Also include VMs explicitly tagged diagram-homelab (e.g. a standalone VM
+    # that is not part of a Proxmox cluster visible as a device)
+    for d in raw_lab_vm:
+        tags = _tags(d)
+        if TAG_EXCLUDE in tags or d.get("name") in seen_lab:
+            continue
+        # Only add if not already a child of a cluster host we have
+        seen_lab.add(d["name"])
+        lab_nodes_raw.append(_make_node(d, tags, source="vm"))
 
-    # VMs for homelab cluster members
-    if lab_nodes:
-        print("[INFO] Fetching /virtualization/virtual-machines/ …")
-        raw_vms = nb_get("/virtualization/virtual-machines/")
-        cluster_vms: dict[int, list[dict]] = defaultdict(list)
-        for vm in raw_vms:
-            cid = (vm.get("cluster") or {}).get("id")
-            if cid:
+    print(f"[INFO] Classified → public={len(pub_nodes)}, homelab={len(lab_nodes_raw)}")
+
+    # ── Step 6: Attach VMs to cluster hosts via cluster membership ────────────
+    # Build: cluster_id → list of all VMs in that cluster
+    cluster_vms: dict[int, list[dict]] = defaultdict(list)
+    for vm in raw_all_vm:
+        cid = (vm.get("cluster") or {}).get("id")
+        if cid:
+            vm_tags = _tags(vm)
+            if TAG_EXCLUDE not in vm_tags:
                 cluster_vms[cid].append({
                     "name":        vm.get("name") or "unnamed-vm",
                     "description": vm.get("description") or _str(vm.get("role"), "name"),
                     "status":      _str(vm.get("status"), "value") or "active",
                 })
-        for node in lab_nodes:
-            if not node["no_vms"] and node["cluster_id"]:
-                node["vms"] = cluster_vms.get(node["cluster_id"], [])
-                if node["vms"]:
-                    print(f"  → {node['name']}: {len(node['vms'])} VMs")
 
-    # Physical cables
+    for node in lab_nodes_raw:
+        if not node["no_vms"] and node["cluster_id"]:
+            vms = cluster_vms.get(node["cluster_id"], [])
+            node["vms"] = sorted(vms, key=lambda v: v["name"])
+            if node["vms"]:
+                print(f"  → {node['name']}: {len(node['vms'])} VMs "
+                      f"(cluster: {node['cluster_name']})")
+
+    # ── Step 7: Cables → adjacency graph for BFS topology sort ───────────────
     print("[INFO] Fetching /dcim/cables/ …")
-    raw_cables = nb_get("/dcim/cables/")
-    all_names = {n["name"] for n in pub_nodes} | {n["name"] for n in lab_nodes}
+    raw_cables   = nb_get("/dcim/cables/")
+    all_dev_names = {d.get("name") for d in raw_all_dev if d.get("name")}
+    tagged_names  = {n["name"] for n in pub_nodes} | {n["name"] for n in lab_nodes_raw}
     cables: list[tuple[str, str]] = []
-    for cable in raw_cables:
-        def _dev(terms: list) -> str | None:
-            for t in (terms or []):
-                dev = (t.get("object") or {}).get("device") or t.get("object") or {}
-                n = dev.get("name")
-                if n and n in all_names:
-                    return n
-            return None
-        na, nb_ = _dev(cable.get("a_terminations") or []), _dev(cable.get("b_terminations") or [])
-        if na and nb_ and na != nb_:
-            cables.append((na, nb_))
+    adj: dict[str, set[str]] = defaultdict(set)
 
-    # ── VPN Tunnels from Netbox (/vpn/tunnels/) ────────────────────────────────
-    # Netbox stores each tunnel with terminations that reference interfaces,
-    # which in turn reference devices. We resolve device names from there.
-    # tunnel.encapsulation slug "wireguard" → style "wireguard", else "logical".
+    def _dev_name_from_terms(terms: list) -> str | None:
+        for t in (terms or []):
+            obj = t.get("object") or {}
+            dev = obj.get("device") or {}
+            n   = dev.get("name") or obj.get("name") or ""
+            if n in all_dev_names:
+                return n
+        return None
+
+    for cable in raw_cables:
+        na  = _dev_name_from_terms(cable.get("a_terminations") or [])
+        nb_ = _dev_name_from_terms(cable.get("b_terminations") or [])
+        if na and nb_ and na != nb_:
+            adj[na].add(nb_)
+            adj[nb_].add(na)
+            if na in tagged_names and nb_ in tagged_names:
+                cables.append((na, nb_))
+
+    print(f"[INFO] Cables: {len(raw_cables)} total, {len(cables)} between tagged devices")
+
+    # ── Step 8: BFS topology sort for Home Lab ────────────────────────────────
+    lab_nodes = _topo_sort(lab_nodes_raw, adj, root_name=HOMELAB_ROOT)
+
+    # ── Step 9: VPN Tunnels ───────────────────────────────────────────────────
     print("[INFO] Fetching /vpn/tunnels/ …")
     raw_tunnels = nb_get("/vpn/tunnels/")
     tunnels: list[tuple[str, str, str, str]] = []
 
     if raw_tunnels:
-        print(f"[INFO] Found {len(raw_tunnels)} VPN tunnel(s) in Netbox")
-        # Fetch all terminations once, then group by tunnel id
+        print(f"[INFO] Found {len(raw_tunnels)} VPN tunnel(s)")
         all_terms = nb_get("/vpn/tunnel-terminations/")
         terms_by_tunnel: dict[int, list[dict]] = defaultdict(list)
         for term in all_terms:
             tid_ = (term.get("tunnel") or {}).get("id")
             if tid_:
                 terms_by_tunnel[tid_].append(term)
-
         for t in raw_tunnels:
-            tid      = t.get("id")
-            label    = t.get("name") or "VPN Tunnel"
-            encap    = _str(t.get("encapsulation"), "value").lower()
-            style    = "wireguard" if "wireguard" in encap else "logical"
-
-            terms = terms_by_tunnel.get(tid, [])
-            # Termination object can be an Interface (has .device) or IP address
+            tid   = t.get("id")
+            label = t.get("name") or "VPN Tunnel"
+            encap = _str(t.get("encapsulation"), "value").lower()
+            style = "wireguard" if "wireguard" in encap else "logical"
             dev_names: list[str] = []
-            for term in terms:
+            for term in terms_by_tunnel.get(tid, []):
                 obj  = term.get("termination") or {}
-                # Interface termination: obj.device.name
                 dev  = obj.get("device") or {}
-                name = dev.get("name") or ""
-                # Fallback: if termination is the device itself
-                if not name:
-                    name = obj.get("name") or ""
+                name = dev.get("name") or obj.get("name") or ""
                 if name and name not in dev_names:
                     dev_names.append(name)
-
             if len(dev_names) >= 2:
                 tunnels.append((dev_names[0], dev_names[1], label, style))
-                print(f"  -> Tunnel '{label}' ({style}): {dev_names[0]} <-> {dev_names[1]}")
-            elif len(dev_names) == 1:
-                print(f"  [WARN] Tunnel '{label}': only 1 endpoint resolved ({dev_names[0]})")
+                print(f"  -> '{label}' ({style}): {dev_names[0]} <-> {dev_names[1]}")
             else:
-                print(f"  [WARN] Tunnel '{label}': no device endpoints resolved – skipped")
+                print(f"  [WARN] '{label}': only {len(dev_names)} endpoint(s) resolved")
     else:
-        print("[INFO] No VPN tunnels in Netbox – using fallback list")
+        print("[INFO] No VPN tunnels in Netbox – using fallback")
 
     if not tunnels:
         tunnels = LOGICAL_TUNNELS_FALLBACK
 
-    return pub_nodes, lab_nodes, cables, tunnels, len(raw_devices)
+    total_raw = len(raw_all_dev) + len(raw_all_vm)
+    return pub_nodes, lab_nodes, cables, tunnels, total_raw
+
+
+def _topo_sort(
+    nodes: list[dict],
+    adj: dict[str, set[str]],
+    root_name: str,
+) -> list[dict]:
+    """
+    Order lab nodes by cable topology using BFS from root_name.
+    Result: root first, then its direct cable neighbours, then their neighbours, etc.
+    Nodes not reachable via cables are appended alphabetically at the end.
+    """
+    node_map = {n["name"]: n for n in nodes}
+    ordered: list[dict] = []
+    visited: set[str] = set()
+
+    # Start BFS from root if it exists in our node list
+    queue: list[str] = []
+    if root_name in node_map:
+        queue.append(root_name)
+        visited.add(root_name)
+    elif nodes:
+        # Root not in tagged devices – fall back to first alphabetically
+        fallback = sorted(node_map.keys())[0]
+        print(f"[WARN] Root '{root_name}' not in homelab nodes, using '{fallback}'")
+        queue.append(fallback)
+        visited.add(fallback)
+
+    while queue:
+        current = queue.pop(0)
+        if current in node_map:
+            ordered.append(node_map[current])
+        # Neighbours that are in our node list, sorted for deterministic output
+        neighbours = sorted(adj.get(current, set()) & node_map.keys() - visited)
+        for nb_ in neighbours:
+            visited.add(nb_)
+            queue.append(nb_)
+
+    # Append anything not reachable via cables
+    unreachable = sorted(n["name"] for n in nodes if n["name"] not in visited)
+    for name in unreachable:
+        ordered.append(node_map[name])
+
+    print(f"[INFO] Home Lab topology order: {[n['name'] for n in ordered]}")
+    return ordered
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  SVG layout helpers
