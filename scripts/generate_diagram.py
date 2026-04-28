@@ -254,27 +254,50 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
 
     print(f"[INFO] Classified → public={len(pub_nodes)}, homelab={len(lab_nodes_raw)}")
 
-    # ── Step 6: Attach VMs to cluster hosts via cluster membership ────────────
-    # Build: cluster_id → list of all VMs in that cluster
-    cluster_vms: dict[int, list[dict]] = defaultdict(list)
+    # ── Step 6: Attach VMs to clusters, shared across all nodes in cluster ────
+    # cluster_id → { name, vms[] }
+    cluster_info: dict[int, dict] = {}
     for vm in raw_all_vm:
-        cid = (vm.get("cluster") or {}).get("id")
+        cid   = (vm.get("cluster") or {}).get("id")
+        cname = (vm.get("cluster") or {}).get("name") or f"cluster-{cid}"
         if cid:
             vm_tags = _tags(vm)
             if TAG_EXCLUDE not in vm_tags:
-                cluster_vms[cid].append({
+                if cid not in cluster_info:
+                    cluster_info[cid] = {"name": cname, "vms": []}
+                cluster_info[cid]["vms"].append({
                     "name":        vm.get("name") or "unnamed-vm",
                     "description": vm.get("description") or _str(vm.get("role"), "name"),
                     "status":      _str(vm.get("status"), "value") or "active",
                 })
 
+    # Sort VMs within each cluster
+    for ci in cluster_info.values():
+        ci["vms"].sort(key=lambda v: v["name"])
+
+    # Group lab nodes by cluster_id to find which nodes share a cluster
+    # cluster_id → [node, node, ...]
+    cluster_nodes: dict[int, list[dict]] = defaultdict(list)
     for node in lab_nodes_raw:
-        if not node["no_vms"] and node["cluster_id"]:
-            vms = cluster_vms.get(node["cluster_id"], [])
-            node["vms"] = sorted(vms, key=lambda v: v["name"])
-            if node["vms"]:
-                print(f"  → {node['name']}: {len(node['vms'])} VMs "
-                      f"(cluster: {node['cluster_name']})")
+        if node["cluster_id"]:
+            cluster_nodes[node["cluster_id"]].append(node)
+
+    # Assign VMs only to the FIRST node of each cluster (alphabetically by name)
+    # Other nodes in the same cluster get vms=[] and a cluster_sibling flag
+    for cid, members in cluster_nodes.items():
+        members_sorted = sorted(members, key=lambda n: n["name"])
+        primary = members_sorted[0]
+        ci = cluster_info.get(cid, {})
+        if not primary["no_vms"]:
+            primary["vms"]          = ci.get("vms", [])
+            primary["cluster_name"] = ci.get("name", "")
+            primary["cluster_primary"] = True
+        for sibling in members_sorted[1:]:
+            sibling["cluster_sibling_of"] = primary["name"]
+            sibling["cluster_name"]       = ci.get("name", "")
+        if ci.get("vms"):
+            print(f"  → cluster '{ci['name']}': {len(ci['vms'])} VMs "
+                  f"(primary host: {primary['name']})")
 
     # ── Step 7: Cables → adjacency graph for BFS topology sort ───────────────
     print("[INFO] Fetching /dcim/cables/ …")
@@ -327,16 +350,20 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
             style = "wireguard" if "wireguard" in encap else "logical"
             dev_names: list[str] = []
             for term in terms_by_tunnel.get(tid, []):
+                # termination points to an Interface object which has a .device
                 obj  = term.get("termination") or {}
+                # obj is the Interface: obj["device"]["name"] is what we want
                 dev  = obj.get("device") or {}
-                name = dev.get("name") or obj.get("name") or ""
+                name = dev.get("name") or ""
+                # Never fall back to obj["name"] – that would be the interface name (e.g. "wg0")
                 if name and name not in dev_names:
                     dev_names.append(name)
             if len(dev_names) >= 2:
                 tunnels.append((dev_names[0], dev_names[1], label, style))
                 print(f"  -> '{label}' ({style}): {dev_names[0]} <-> {dev_names[1]}")
             else:
-                print(f"  [WARN] '{label}': only {len(dev_names)} endpoint(s) resolved")
+                print(f"  [WARN] '{label}': {len(dev_names)} endpoint(s) – raw terminations: "
+                      f"{[t.get('termination') for t in terms_by_tunnel.get(tid, [])]}")
     else:
         print("[INFO] No VPN tunnels in Netbox – using fallback")
 
@@ -353,42 +380,57 @@ def _topo_sort(
     root_name: str,
 ) -> list[dict]:
     """
-    Order lab nodes by cable topology using BFS from root_name.
-    Result: root first, then its direct cable neighbours, then their neighbours, etc.
-    Nodes not reachable via cables are appended alphabetically at the end.
+    BFS from root_name through cable adjacency.
+    Assigns a 'topo_level' (0, 1, 2, …) to each node so the SVG renderer
+    can place them in distinct rows.  Nodes not reachable via cables get
+    level = max_level + 1 and are appended alphabetically.
+    Returns nodes ordered by (topo_level, name).
     """
     node_map = {n["name"]: n for n in nodes}
-    ordered: list[dict] = []
-    visited: set[str] = set()
 
-    # Start BFS from root if it exists in our node list
-    queue: list[str] = []
+    # Pick root
     if root_name in node_map:
-        queue.append(root_name)
-        visited.add(root_name)
+        start = root_name
     elif nodes:
-        # Root not in tagged devices – fall back to first alphabetically
-        fallback = sorted(node_map.keys())[0]
-        print(f"[WARN] Root '{root_name}' not in homelab nodes, using '{fallback}'")
-        queue.append(fallback)
-        visited.add(fallback)
+        start = sorted(node_map.keys())[0]
+        print(f"[WARN] Root '{root_name}' not in homelab nodes – using '{start}'")
+    else:
+        return nodes
+
+    # BFS – track which level each node lands on
+    level_of: dict[str, int] = {start: 0}
+    queue: list[str] = [start]
+    visited: set[str] = {start}
 
     while queue:
         current = queue.pop(0)
-        if current in node_map:
-            ordered.append(node_map[current])
-        # Neighbours that are in our node list, sorted for deterministic output
-        neighbours = sorted(adj.get(current, set()) & node_map.keys() - visited)
+        cur_level = level_of[current]
+        # Only traverse to neighbours that are tagged homelab nodes
+        neighbours = sorted(
+            adj.get(current, set()) & node_map.keys() - visited
+        )
         for nb_ in neighbours:
             visited.add(nb_)
+            level_of[nb_] = cur_level + 1
             queue.append(nb_)
 
-    # Append anything not reachable via cables
-    unreachable = sorted(n["name"] for n in nodes if n["name"] not in visited)
-    for name in unreachable:
-        ordered.append(node_map[name])
+    # Assign levels; unreachable nodes go one level below deepest reached
+    max_level = max(level_of.values()) if level_of else 0
+    for name in node_map:
+        if name not in level_of:
+            level_of[name] = max_level + 1
 
-    print(f"[INFO] Home Lab topology order: {[n['name'] for n in ordered]}")
+    # Stamp level onto each node dict for the renderer
+    for node in nodes:
+        node["topo_level"] = level_of[node["name"]]
+
+    ordered = sorted(nodes, key=lambda n: (n["topo_level"], n["name"]))
+    levels_summary = {}
+    for n in ordered:
+        lv = n["topo_level"]
+        levels_summary.setdefault(lv, []).append(n["name"])
+    for lv, names in sorted(levels_summary.items()):
+        print(f"[INFO] Home Lab level {lv}: {names}")
     return ordered
 
 
@@ -441,18 +483,30 @@ def _row_xs(count: int, zone_x: int, zone_w: int, cw: int, gap: int) -> list[int
     x0 = zone_x + max(0, (zone_w - total) // 2)
     return [x0 + i * (cw + gap) for i in range(count)]
 
+def _lab_rows(nodes: list[dict]) -> list[list[dict]]:
+    """Group lab nodes by topo_level into ordered rows."""
+    from collections import OrderedDict
+    rows: dict[int, list[dict]] = {}
+    for n in nodes:
+        lv = n.get("topo_level", 0)
+        rows.setdefault(lv, []).append(n)
+    return [rows[lv] for lv in sorted(rows)]
+
 def _content_h(nodes: list[dict], zone_w: int) -> int:
-    """Total height of card rows + VM children."""
+    """Total height of all topo-level rows + shared cluster VM rows."""
     if not nodes:
         return DH
-    max_row = max(1, (zone_w + HGAP) // (DW + HGAP))
+    rows = _lab_rows(nodes)
     total = 0
-    i = 0
-    while i < len(nodes):
-        row = nodes[i : i + max_row]
-        has_vms = any(n.get("vms") for n in row)
-        total += DH + (VM_H + 28 if has_vms else 0) + VGAP * 2
-        i += max_row
+    for row in rows:
+        # Count distinct cluster primaries with VMs in this row
+        cluster_vm_rows = sum(
+            1 for n in row
+            if n.get("cluster_primary") and n.get("vms")
+        )
+        # Each cluster adds: label bar (18) + VM row (VM_H) + gap
+        vm_extra = cluster_vm_rows * (18 + VM_H + VGAP + 14)
+        total += DH + vm_extra + VGAP * 2
     return total
 
 def _zone_h(nodes: list[dict], zone_w: int) -> int:
@@ -553,14 +607,20 @@ def build_svg(
         card_y_base: int,
         zone_color: str,
     ) -> None:
-        """Lay out device cards in rows, with optional VM children."""
-        max_row = max(1, (zone_w + HGAP) // (DW + HGAP))
+        """
+        Lay out device cards grouped by topo_level (each level = one row).
+        After any row that contains cluster-primary nodes, render a shared
+        VM sub-row for all VMs of that cluster, centred across the full zone width.
+        """
+        rows = _lab_rows(nodes)
         dy = 0
-        i = 0
-        while i < len(nodes):
-            row = nodes[i : i + max_row]
-            xs  = _row_xs(len(row), zone_x, zone_w, DW, HGAP)
-            has_vms = any(n.get("vms") for n in row)
+        for row in rows:
+            xs      = _row_xs(len(row), zone_x, zone_w, DW, HGAP)
+            # Collect cluster primaries that have VMs in this row
+            vm_rows: list[tuple[dict, list[dict]]] = []  # (primary_node, vms)
+            for node in row:
+                if node.get("cluster_primary") and node.get("vms"):
+                    vm_rows.append((node, node["vms"]))
 
             for j, node in enumerate(row):
                 cx, cy = render_card(
@@ -570,20 +630,38 @@ def build_svg(
                 )
                 pos_index[node["name"]] = (cx, cy)
 
-                if node.get("vms"):
-                    vm_y = card_y_base + dy + DH + 20
-                    vm_xs = _row_xs(len(node["vms"]), zone_x, zone_w, VM_W, VM_HGAP)
-                    for k, vm in enumerate(node["vms"]):
-                        vcx = vm_xs[k] + VM_W // 2
-                        conn_lines.append(
-                            f'<line x1="{cx}" y1="{card_y_base + dy + DH}" '
-                            f'x2="{vcx}" y2="{vm_y}" '
-                            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>'
-                        )
-                        render_vm(vm_xs[k], vm_y, vm)
+            # Render shared VM rows below this device row
+            vm_dy = dy + DH + 14
+            for primary_node, vms in vm_rows:
+                cluster_label = primary_node.get("cluster_name", "")
+                # Cluster label bar
+                if cluster_label:
+                    lbl_w = min(len(cluster_label) * 7 + 20, zone_w - 40)
+                    lbl_x = zone_x + (zone_w - lbl_w) // 2
+                    a(f'<rect x="{lbl_x}" y="{card_y_base + vm_dy}" '
+                      f'width="{lbl_w}" height="14" rx="2" '
+                      f'fill="{C["bg"]}" stroke="{C["vm_bdr"]}" stroke-width="1"/>')
+                    a(f'<text x="{lbl_x + lbl_w//2}" y="{card_y_base + vm_dy + 10}" '
+                      f'text-anchor="middle" fill="{C["dim"]}" '
+                      f'font-size="6" letter-spacing="1">{_xml(cluster_label)}</text>')
+                    vm_dy += 18
 
-            dy += DH + (VM_H + 28 if has_vms else 0) + VGAP * 2
-            i  += max_row
+                # Draw connector lines from the primary host card down to VMs
+                pcx, pcy = pos_index[primary_node["name"]]
+                vm_y   = card_y_base + vm_dy
+                vm_xs  = _row_xs(len(vms), zone_x, zone_w, VM_W, VM_HGAP)
+                for k, vm in enumerate(vms):
+                    vcx = vm_xs[k] + VM_W // 2
+                    conn_lines.append(
+                        f'<line x1="{pcx}" y1="{pcy + DH//2}" '
+                        f'x2="{vcx}" y2="{vm_y}" '
+                        f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>'
+                    )
+                    render_vm(vm_xs[k], vm_y, vm)
+                vm_dy += VM_H + VGAP
+
+            has_vms = bool(vm_rows)
+            dy += DH + (vm_dy - dy - DH + VGAP if has_vms else 0) + VGAP * 2
 
     def render_zone_box(x: int, y: int, w: int, h: int, color: str, label: str) -> None:
         a(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="2" '
@@ -732,3 +810,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+  
