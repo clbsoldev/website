@@ -326,7 +326,7 @@
       reachable cloud infrastructure, and the private home lab.
     </p>
 
-    <div class="arch-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+    <div class="arch-grid" style="grid-template-columns: 1fr;">
       <!-- SaaS -->
       <div class="arch-block">
         <div class="arch-block-title" style="color:#9b59b6; border-bottom-color:#9b59b6;">⬡ SaaS Services</div>
@@ -446,140 +446,134 @@
     <div class="diagram-box">
       <div class="section-label" style="text-align:left; margin-bottom:1rem;">Network Diagram</div>
 
-      <!-- Static fallback SVG: shown until assets/diagram.svg is available.
-           Layout mirrors generate_diagram.py:
-           SaaS (top-left) | INTERNET | Public Infra (top-right)
-                           |  Home Lab (bottom)
-           Card format: Name (bold) + description (dim)                    -->
-      <svg id="static-fallback" class="static-diagram" viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
-        <rect width="960" height="560" fill="#111620"/>
+      <!-- Static fallback SVG — layout matches generate_diagram.py exactly:
+           Row 1: [ SaaS Services (left) ]  [ Public Infrastructure (right) ]
+           Row 2: [            ☁ INTERNET            ]
+           Row 3: [              Home Lab              ]
+           Cards: Name bold + description dim          -->
+      <svg id="static-fallback" class="static-diagram" viewBox="0 0 960 640" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+        <rect width="960" height="640" fill="#111620"/>
 
-        <!-- ── INTERNET (top-centre) ── -->
-        <ellipse cx="480" cy="58" rx="46" ry="26" fill="#111620" stroke="#1e2a3a" stroke-width="1.5"/>
-        <text x="480" y="52" text-anchor="middle" fill="#5a7a94" font-size="8" letter-spacing="1.5">INTER</text>
-        <text x="480" y="65" text-anchor="middle" fill="#5a7a94" font-size="8" letter-spacing="1.5">NET</text>
+        <!-- ══ ROW 1: SaaS (left 38%) + Public (right 62%) ══ -->
 
-        <!-- ── SAAS ZONE (top-left) ── -->
-        <rect x="24" y="16" width="378" height="126" rx="2" fill="none" stroke="#7c5cbf" stroke-width="1" stroke-dasharray="4,4"/>
-        <text x="36" y="30" fill="#7c5cbf" font-size="8" letter-spacing="2">☁ SAAS / CLOUD SERVICES</text>
+        <!-- SaaS zone border -->
+        <rect x="28" y="20" width="334" height="192" rx="2" fill="none" stroke="#2a2a4a" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="40" y="35" fill="#7c5cbf" font-size="8" letter-spacing="2">⬡ SAAS SERVICES</text>
 
-        <!-- Webex Cloud card -->
-        <rect x="36" y="38" width="108" height="90" rx="2" fill="#0a0e14" stroke="#7c5cbf" stroke-width="1"/>
-        <text x="90" y="72" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Webex Cloud</text>
-        <text x="90" y="86" text-anchor="middle" fill="#5a7a94" font-size="7">Meetings · Calling</text>
-        <text x="90" y="97" text-anchor="middle" fill="#5a7a94" font-size="7">Hybrid Services</text>
-        <text x="90" y="122" text-anchor="middle" fill="#5a7a94" font-size="6" opacity="0.6">web.webex.com</text>
+        <!-- Webex Cloud -->
+        <rect x="40" y="44" width="148" height="72" rx="2" fill="#0a0e14" stroke="#0077a8" stroke-width="1"/>
+        <text x="114" y="68" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Webex Cloud</text>
+        <text x="114" y="82" text-anchor="middle" fill="#5a7a94" font-size="7">Hybrid Services · Calling</text>
+        <text x="114" y="93" text-anchor="middle" fill="#5a7a94" font-size="7">Messaging</text>
 
-        <!-- Netbox Cloud card -->
-        <rect x="156" y="38" width="108" height="90" rx="2" fill="#0a0e14" stroke="#7c5cbf" stroke-width="1"/>
-        <text x="210" y="72" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Netbox Cloud</text>
-        <text x="210" y="86" text-anchor="middle" fill="#5a7a94" font-size="7">IPAM / DCIM</text>
-        <text x="210" y="97" text-anchor="middle" fill="#5a7a94" font-size="7">Free Tier</text>
-        <text x="210" y="122" text-anchor="middle" fill="#5a7a94" font-size="6" opacity="0.6">netboxlabs.com</text>
+        <!-- Netbox Cloud -->
+        <rect x="200" y="44" width="148" height="72" rx="2" fill="#0a0e14" stroke="#9b59b6" stroke-width="1"/>
+        <text x="274" y="68" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Netbox Cloud</text>
+        <text x="274" y="82" text-anchor="middle" fill="#5a7a94" font-size="7">IPAM / DCIM · Free Tier</text>
+        <text x="274" y="93" text-anchor="middle" fill="#5a7a94" font-size="7">diagram source</text>
 
-        <!-- M365 card -->
-        <rect x="276" y="38" width="108" height="90" rx="2" fill="#0a0e14" stroke="#7c5cbf" stroke-width="1"/>
-        <text x="330" y="72" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Microsoft 365</text>
-        <text x="330" y="86" text-anchor="middle" fill="#5a7a94" font-size="7">Exchange · Teams</text>
-        <text x="330" y="97" text-anchor="middle" fill="#5a7a94" font-size="7">AAD</text>
-        <text x="330" y="122" text-anchor="middle" fill="#5a7a94" font-size="6" opacity="0.6">microsoft365.com</text>
+        <!-- M365 (second row in SaaS zone) -->
+        <rect x="40" y="132" width="148" height="68" rx="2" fill="#0a0e14" stroke="#0078d4" stroke-width="1"/>
+        <text x="114" y="155" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Microsoft 365</text>
+        <text x="114" y="169" text-anchor="middle" fill="#5a7a94" font-size="7">Exchange · Teams</text>
+        <text x="114" y="180" text-anchor="middle" fill="#5a7a94" font-size="7">Hybrid Calendar</text>
 
-        <!-- SaaS ↔ Internet -->
-        <line x1="402" y1="58" x2="434" y2="58" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
-
-        <!-- ── PUBLIC INFRA ZONE (top-right) ── -->
-        <rect x="558" y="16" width="378" height="126" rx="2" fill="none" stroke="#ff8c42" stroke-width="1" stroke-dasharray="4,4"/>
-        <text x="570" y="30" fill="#ff8c42" font-size="8" letter-spacing="2">☁ PUBLIC INFRASTRUCTURE</text>
+        <!-- Public zone border -->
+        <rect x="378" y="20" width="554" height="192" rx="2" fill="none" stroke="#ff8c42" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="390" y="35" fill="#ff8c42" font-size="8" letter-spacing="2">☁ PUBLIC INFRASTRUCTURE</text>
 
         <!-- VPS Monitoring -->
-        <rect x="570" y="38" width="168" height="90" rx="2" fill="#0a0e14" stroke="#ff8c42" stroke-width="1"/>
-        <text x="654" y="68" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">VPS · Monitoring</text>
-        <text x="654" y="82" text-anchor="middle" fill="#5a7a94" font-size="7">Nagios Core</text>
-        <text x="654" y="93" text-anchor="middle" fill="#5a7a94" font-size="7">cron-job.org heartbeat</text>
-        <text x="654" y="104" text-anchor="middle" fill="#5a7a94" font-size="7">passive checks</text>
+        <rect x="400" y="44" width="238" height="72" rx="2" fill="#0a0e14" stroke="#ff8c42" stroke-width="1"/>
+        <text x="519" y="68" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">VPS · Monitoring</text>
+        <text x="519" y="82" text-anchor="middle" fill="#5a7a94" font-size="7">Nagios Core</text>
+        <text x="519" y="93" text-anchor="middle" fill="#5a7a94" font-size="7">cron-job.org heartbeat · passive checks</text>
 
         <!-- VPS nginx -->
-        <rect x="756" y="38" width="168" height="90" rx="2" fill="#0a0e14" stroke="#ff8c42" stroke-width="1"/>
-        <text x="840" y="68" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">VPS nginx</text>
-        <text x="840" y="82" text-anchor="middle" fill="#5a7a94" font-size="7">Reverse Proxy</text>
-        <text x="840" y="93" text-anchor="middle" fill="#5a7a94" font-size="7">WireGuard endpoint</text>
-        <text x="840" y="104" text-anchor="middle" fill="#5a7a94" font-size="7">public lab endpoints</text>
+        <rect x="654" y="44" width="262" height="72" rx="2" fill="#0a0e14" stroke="#ff8c42" stroke-width="1"/>
+        <text x="785" y="68" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">VPS nginx</text>
+        <text x="785" y="82" text-anchor="middle" fill="#5a7a94" font-size="7">Reverse Proxy</text>
+        <text x="785" y="93" text-anchor="middle" fill="#5a7a94" font-size="7">WireGuard endpoint</text>
 
-        <!-- Internet ↔ Public Infra -->
-        <line x1="526" y1="58" x2="558" y2="58" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
+        <!-- ══ ROW 2: Internet band ══ -->
+        <rect x="0" y="228" width="960" height="72" fill="#0c1118"/>
+        <ellipse cx="480" cy="264" rx="92" ry="28" fill="none" stroke="#1e2a3a" stroke-width="1.5"/>
+        <text x="480" y="270" text-anchor="middle" fill="#5a7a94" font-size="11" letter-spacing="3">INTERNET</text>
 
-        <!-- Internet → Home Lab -->
-        <line x1="480" y1="84" x2="480" y2="162" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
+        <!-- Row 1 → Internet connectors -->
+        <line x1="195" y1="212" x2="400" y2="248" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="660" y1="212" x2="520" y2="248" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
 
-        <!-- WireGuard tunnel: VPS nginx ↔ Unifi Gateway -->
-        <line x1="840" y1="128" x2="340" y2="224" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.9"/>
-        <rect x="552" y="160" width="100" height="16" rx="2" fill="#111620" stroke="#00d4ff" stroke-width="1"/>
-        <text x="602" y="172" text-anchor="middle" fill="#00d4ff" font-size="7" letter-spacing="0.5">🔒 WireGuard VPN</text>
+        <!-- WireGuard tunnel: VPS nginx ↔ Unifi Gateway (crosses Internet band) -->
+        <line x1="785" y1="116" x2="340" y2="348" stroke="#00d4ff" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.85"/>
+        <rect x="524" y="234" width="104" height="16" rx="2" fill="#0c1118" stroke="#00d4ff" stroke-width="1"/>
+        <text x="576" y="246" text-anchor="middle" fill="#00d4ff" font-size="7" letter-spacing="0.5">🔒 WireGuard VPN</text>
 
-        <!-- ── HOME LAB ZONE (bottom) ── -->
-        <rect x="24" y="162" width="912" height="376" rx="2" fill="none" stroke="#00e5a0" stroke-width="1" stroke-dasharray="4,4"/>
-        <text x="36" y="176" fill="#00e5a0" font-size="8" letter-spacing="2">🏠 HOME LAB</text>
+        <!-- Internet → Home Lab connector -->
+        <line x1="480" y1="292" x2="480" y2="316" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
 
-        <!-- Row 1: Unifi Gateway (anchor, centre) -->
-        <rect x="272" y="186" width="156" height="68" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1.5"/>
-        <text x="350" y="214" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Unifi Gateway</text>
-        <text x="350" y="228" text-anchor="middle" fill="#5a7a94" font-size="7">VLAN segmentation</text>
-        <text x="350" y="239" text-anchor="middle" fill="#5a7a94" font-size="7">WireGuard endpoint</text>
+        <!-- ══ ROW 3: Home Lab ══ -->
+        <rect x="28" y="316" width="904" height="296" rx="2" fill="none" stroke="#00e5a0" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="40" y="331" fill="#00e5a0" font-size="8" letter-spacing="2">🏠 HOME LAB</text>
+
+        <!-- Unifi Gateway — network anchor, slightly highlighted -->
+        <rect x="376" y="344" width="208" height="70" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1.5"/>
+        <text x="480" y="368" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Unifi Gateway</text>
+        <text x="480" y="382" text-anchor="middle" fill="#5a7a94" font-size="7">VLAN segmentation</text>
+        <text x="480" y="393" text-anchor="middle" fill="#5a7a94" font-size="7">WireGuard VPN endpoint</text>
+
+        <!-- fan-out lines from Unifi -->
+        <line x1="376" y1="379" x2="145" y2="440" stroke="#1e2a3a" stroke-width="1"/>
+        <line x1="376" y1="379" x2="310" y2="440" stroke="#1e2a3a" stroke-width="1"/>
+        <line x1="480" y1="414" x2="480" y2="440" stroke="#1e2a3a" stroke-width="1"/>
+        <line x1="584" y1="379" x2="650" y2="440" stroke="#1e2a3a" stroke-width="1"/>
+        <line x1="584" y1="379" x2="816" y2="440" stroke="#1e2a3a" stroke-width="1"/>
 
         <!-- Ansible RasPi -->
-        <rect x="52" y="186" width="156" height="68" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-        <text x="130" y="214" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Ansible · RasPi</text>
-        <text x="130" y="228" text-anchor="middle" fill="#5a7a94" font-size="7">control node</text>
-        <text x="130" y="239" text-anchor="middle" fill="#5a7a94" font-size="7">config management</text>
-
-        <!-- Synology NAS -->
-        <rect x="492" y="186" width="156" height="68" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-        <text x="570" y="214" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Synology NAS</text>
-        <text x="570" y="228" text-anchor="middle" fill="#5a7a94" font-size="7">Docker Stacks</text>
-        <text x="570" y="239" text-anchor="middle" fill="#5a7a94" font-size="7">n8n · phpIPAM</text>
-
-        <!-- 2N Lab -->
-        <rect x="712" y="186" width="156" height="68" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-        <text x="790" y="214" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">2N Lab</text>
-        <text x="790" y="228" text-anchor="middle" fill="#5a7a94" font-size="7">Intercom</text>
-        <text x="790" y="239" text-anchor="middle" fill="#5a7a94" font-size="7">Access Manager</text>
-
-        <!-- Row 2: Proxmox (with VM children) -->
-        <rect x="272" y="298" width="156" height="68" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
-        <text x="350" y="326" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Proxmox Cluster</text>
-        <text x="350" y="340" text-anchor="middle" fill="#5a7a94" font-size="7">VMs + LXC</text>
-        <text x="350" y="351" text-anchor="middle" fill="#5a7a94" font-size="7">lab virtualisation</text>
+        <rect x="48" y="440" width="190" height="70" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
+        <text x="143" y="464" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Ansible · RasPi</text>
+        <text x="143" y="478" text-anchor="middle" fill="#5a7a94" font-size="7">control node</text>
+        <text x="143" y="489" text-anchor="middle" fill="#5a7a94" font-size="7">config management</text>
 
         <!-- Cisco Switch -->
-        <rect x="52" y="298" width="156" height="68" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
-        <text x="130" y="326" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Cisco Switch</text>
-        <text x="130" y="340" text-anchor="middle" fill="#5a7a94" font-size="7">+ IP Phones</text>
-        <text x="130" y="351" text-anchor="middle" fill="#5a7a94" font-size="7">Webex Calling / SIP</text>
+        <rect x="252" y="440" width="190" height="70" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
+        <text x="347" y="464" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Cisco Switch</text>
+        <text x="347" y="478" text-anchor="middle" fill="#5a7a94" font-size="7">+ IP Phones</text>
+        <text x="347" y="489" text-anchor="middle" fill="#5a7a94" font-size="7">Webex Calling / SIP</text>
 
-        <!-- Connector lines from Unifi to row 1 siblings -->
-        <line x1="272" y1="220" x2="208" y2="220" stroke="#1e2a3a" stroke-width="1"/>
-        <line x1="428" y1="220" x2="492" y2="220" stroke="#1e2a3a" stroke-width="1"/>
-        <line x1="428" y1="220" x2="712" y2="220" stroke="#1e2a3a" stroke-width="1"/>
-        <!-- Unifi → Proxmox and Cisco -->
-        <line x1="350" y1="254" x2="350" y2="298" stroke="#1e2a3a" stroke-width="1"/>
-        <line x1="272" y1="254" x2="130" y2="298" stroke="#1e2a3a" stroke-width="1"/>
+        <!-- Proxmox Cluster -->
+        <rect x="380" y="440" width="200" height="70" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
+        <text x="480" y="464" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Proxmox Cluster</text>
+        <text x="480" y="478" text-anchor="middle" fill="#5a7a94" font-size="7">VMs + LXC</text>
+        <text x="480" y="489" text-anchor="middle" fill="#5a7a94" font-size="7">lab virtualisation base</text>
+
+        <!-- 2N Lab -->
+        <rect x="594" y="440" width="190" height="70" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
+        <text x="689" y="464" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">2N Lab</text>
+        <text x="689" y="478" text-anchor="middle" fill="#5a7a94" font-size="7">Intercom</text>
+        <text x="689" y="489" text-anchor="middle" fill="#5a7a94" font-size="7">Access Manager</text>
+
+        <!-- Synology NAS -->
+        <rect x="720" y="440" width="190" height="70" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
+        <text x="815" y="464" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Synology NAS</text>
+        <text x="815" y="478" text-anchor="middle" fill="#5a7a94" font-size="7">Docker Stacks</text>
+        <text x="815" y="489" text-anchor="middle" fill="#5a7a94" font-size="7">n8n · phpIPAM</text>
 
         <!-- VM children of Proxmox -->
-        <line x1="310" y1="366" x2="188" y2="406" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-        <line x1="350" y1="366" x2="350" y2="406" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-        <line x1="390" y1="366" x2="512" y2="406" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+        <line x1="440" y1="510" x2="360" y2="542" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+        <line x1="480" y1="510" x2="480" y2="542" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+        <line x1="520" y1="510" x2="600" y2="542" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 
-        <rect x="118" y="406" width="140" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
-        <text x="188" y="424" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">vm-example-1</text>
-        <text x="188" y="438" text-anchor="middle" fill="#5a7a94" font-size="6">tag in Netbox to discover</text>
+        <rect x="288" y="542" width="136" height="40" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="356" y="558" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">vm-example-1</text>
+        <text x="356" y="571" text-anchor="middle" fill="#5a7a94" font-size="6">tag in Netbox → auto-render</text>
 
-        <rect x="270" y="406" width="160" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
-        <text x="350" y="424" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">vm-example-2</text>
-        <text x="350" y="438" text-anchor="middle" fill="#5a7a94" font-size="6">auto-rendered via cluster</text>
+        <rect x="412" y="542" width="136" height="40" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="480" y="558" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">vm-example-2</text>
+        <text x="480" y="571" text-anchor="middle" fill="#5a7a94" font-size="6">auto-rendered via cluster</text>
 
-        <rect x="442" y="406" width="140" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
-        <text x="512" y="424" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">vm-example-3</text>
-        <text x="512" y="438" text-anchor="middle" fill="#5a7a94" font-size="6">auto-rendered via cluster</text>
+        <rect x="536" y="542" width="136" height="40" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="604" y="558" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">vm-example-3</text>
+        <text x="604" y="571" text-anchor="middle" fill="#5a7a94" font-size="6">auto-rendered via cluster</text>
       </svg>
 
       <!-- Dynamic diagram injected by GitHub Actions -->
