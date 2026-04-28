@@ -707,14 +707,16 @@ def build_svg(
         dls = _desc_lines(description, 30)
         nh  = len(nls) * 13
         th  = nh + (len(dls)*11 + 4 if dls else 0)
-        sy  = y + (ch - th) // 2 + 12
+        # Centre vertically, but cap so text never overflows card bottom
+        sy  = y + max(10, (ch - th) // 2 + 10)
         for j, ln in enumerate(nls):
             a(f'<text x="{ccx}" y="{sy+j*13}" text-anchor="middle" '
               f'fill="{C["head"]}" font-size="9" font-weight="600">{ln}</text>')
         dy2 = sy + nh + 4
         for j, dl in enumerate(dls):
-            a(f'<text x="{ccx}" y="{dy2+j*11}" text-anchor="middle" '
-              f'fill="{C["dim"]}" font-size="7">{dl}</text>')
+            if dy2 + j*11 < y + ch - 4:   # guard: only render if within card
+                a(f'<text x="{ccx}" y="{dy2+j*11}" text-anchor="middle" '
+                  f'fill="{C["dim"]}" font-size="7">{dl}</text>')
         return ccx, ccy
 
     def render_vm_card(x, y, vm):
@@ -793,10 +795,8 @@ def build_svg(
         inet_elems.append(
             f'<line x1="{zcx}" y1="{top_y+top_h}" x2="{inet_cx}" y2="{inet_cy-26}" '
             f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
-    # Internet → Home Lab top (placeholder; UXG connector added after lab rendered)
-    inet_elems.append(
-        f'<line x1="{inet_cx}" y1="{inet_cy+26}" x2="{inet_cx}" y2="{lab_y}" '
-        f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
+    # Note: Internet → UXG-Fiber connector is drawn after the lab is rendered
+    # (added to conn_lines once UXG card position is known)
 
     # ── Home Lab: balanced-tree layout ─────────────────────────────────────────
     render_zone_box(ZONE_PAD, lab_y, LAB_W, lab_h, C["lab"], "HOME LAB")
@@ -828,12 +828,15 @@ def build_svg(
                                            node.get("description",""), bdr)
                     pos_index[node["name"]] = (ccx, ccy)
 
-                    # Add UXG-Fiber → Internet ellipse connector now that pos_index has it
+                    # UXG-Fiber → Internet ellipse: from card top centre to ellipse bottom
                     if node["name"] == HOMELAB_ROOT:
                         conn_lines.append(
                             f'<line x1="{ccx}" y1="{card_y}" '
                             f'x2="{inet_cx}" y2="{inet_cy+26}" '
                             f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
+                        # Remove the generic inet→lab_y line from inet_elems (last element)
+                        # by replacing it with a no-op; the UXG connector replaces it
+
 
                     vms = [v for v in node.get("vms",[]) if v["name"] not in rendered_vms]
                     if vms:
@@ -881,6 +884,7 @@ def build_svg(
 
                     for j2, node in enumerate(ms):
                         bdr2 = C["lab"] if node.get("status","active") == "active" else C["off"]
+                        print(f"[DEBUG] cluster member '{node['name']}' description='{node.get('description','')}'")
                         ccx, ccy = render_card(inner_xs[j2], card_y,
                                                node["name"], node.get("description",""), bdr2)
                         pos_index[node["name"]] = (ccx, ccy)
