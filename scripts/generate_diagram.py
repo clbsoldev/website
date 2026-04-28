@@ -493,28 +493,22 @@ def _lab_rows(nodes: list[dict]) -> list[list[dict]]:
     return [rows[lv] for lv in sorted(rows)]
 
 def _content_h(nodes: list[dict], zone_w: int) -> int:
-    """Total height of all topo-level rows + shared cluster VM rows."""
+    """Estimate total height of home lab content (topo rows + cluster boxes + VMs)."""
     if not nodes:
         return DH
     rows = _lab_rows(nodes)
     total = 0
     for row in rows:
-        # Count distinct cluster primaries with VMs in this row
-        cluster_vm_rows = sum(
-            1 for n in row
-            if n.get("cluster_primary") and n.get("vms")
-        )
-        # Each cluster adds: label bar (18) + VM row (VM_H) + gap
-        vm_extra = cluster_vm_rows * (18 + VM_H + VGAP + 14)
-        total += DH + vm_extra + VGAP * 2
+        cluster_primaries = [n for n in row if n.get("cluster_primary") and n.get("vms")]
+        vm_extra = sum(CLUSTER_PAD * 2 + VM_H + 28 + 14 for _ in cluster_primaries)
+        total += DH + CLUSTER_PAD * 2 + 14 + vm_extra + VGAP * 2
     return total
 
 def _zone_h(nodes: list[dict], zone_w: int) -> int:
     return _content_h(nodes, zone_w) + ZONE_HDR + 20
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  SVG builder
-# ══════════════════════════════════════════════════════════════════════════════
+# Extra padding inside cluster box
+CLUSTER_PAD = 10
 
 def build_svg(
     saas:    list[dict],
@@ -523,238 +517,229 @@ def build_svg(
     cables:  list[tuple[str, str]],
     tunnels: list[tuple[str, str, str, str]],
 ) -> str:
-    W = 960
+    W = 1100
 
-    # ── Column widths for top row (SaaS left | Public right) ─────────────────
-    # SaaS gets ~38% of width, Public gets ~62%
-    TOP_PAD   = ZONE_PAD
-    TOP_GAP   = 16
-    SAAS_W    = int((W - 2 * TOP_PAD - TOP_GAP) * 0.38)
-    PUB_W     = W - 2 * TOP_PAD - TOP_GAP - SAAS_W
+    TOP_PAD  = ZONE_PAD
+    TOP_GAP  = 16
+    SAAS_W   = int((W - 2 * TOP_PAD - TOP_GAP) * 0.42)
+    PUB_W    = W - 2 * TOP_PAD - TOP_GAP - SAAS_W
+    saas_x   = TOP_PAD
+    pub_x    = TOP_PAD + SAAS_W + TOP_GAP
+    top_y    = ZONE_PAD
 
-    saas_x    = TOP_PAD
-    pub_x     = TOP_PAD + SAAS_W + TOP_GAP
-    top_y     = ZONE_PAD
+    def _saas_h() -> int:
+        row_max = max(1, (SAAS_W + HGAP) // (DW + HGAP))
+        rows = (len(saas) + row_max - 1) // row_max if saas else 1
+        return rows * DH + (rows - 1) * VGAP * 2 + ZONE_HDR + 20
 
-    saas_h    = _zone_h(saas, SAAS_W) if saas else DH + ZONE_HDR + 20
-    pub_h     = _zone_h(pub,  PUB_W)  if pub  else DH + ZONE_HDR + 20
-    top_h     = max(saas_h, pub_h)
-
-    # ── Internet row ──────────────────────────────────────────────────────────
-    inet_y    = top_y + top_h + 20
-
-    # ── Home Lab row ──────────────────────────────────────────────────────────
-    LAB_W     = W - 2 * ZONE_PAD
-    lab_y     = inet_y + INTERNET_H + 20
-    lab_h     = _zone_h(lab, LAB_W) if lab else DH + ZONE_HDR + 20
-
-    H = lab_y + lab_h + ZONE_PAD + 8
+    saas_h  = _saas_h()
+    pub_h   = _zone_h(pub, PUB_W) if pub else DH + ZONE_HDR + 20
+    top_h   = max(saas_h, pub_h)
+    inet_y  = top_y + top_h + 20
+    LAB_W   = W - 2 * ZONE_PAD
+    lab_y   = inet_y + INTERNET_H + 20
+    lab_h   = _zone_h(lab, LAB_W) if lab else DH + ZONE_HDR + 20
+    H       = lab_y + lab_h + ZONE_PAD + 8
 
     svg: list[str] = []
     a = svg.append
-    conn_lines: list[str] = []   # drawn after zones
+    conn_lines: list[str] = []
     pos_index: dict[str, tuple[int, int]] = {}
 
-    a(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '
-      f'font-family="IBM Plex Mono, monospace">')
+    a(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '      f'font-family="IBM Plex Mono, monospace">')
     a(f'<rect width="{W}" height="{H}" fill="{C["bg"]}"/>')
 
-    # ── Render helpers ────────────────────────────────────────────────────────
-
-    def render_card(
-        x: int, y: int,
-        name: str, description: str,
-        bdr_color: str,
-        card_w: int = DW, card_h: int = DH,
-    ) -> tuple[int, int]:
-        """Draw a card, return center (cx, cy)."""
-        ccx, ccy = x + card_w // 2, y + card_h // 2
-        a(f'<rect x="{x}" y="{y}" width="{card_w}" height="{card_h}" rx="2" '
-          f'fill="{C["bg"]}" stroke="{bdr_color}" stroke-width="1"/>')
-
-        desc_lines  = _desc_lines(description, 26)
-        name_lines  = _wrap(name, 18)[:2]
-        name_h      = len(name_lines) * 13
-        total_h     = name_h + (len(desc_lines) * 11 + 4 if desc_lines else 0)
-        start_y     = y + (card_h - total_h) // 2 + 12
-
+    def render_card(x, y, name, description, bdr, cw=DW, ch=DH):
+        ccx, ccy = x + cw // 2, y + ch // 2
+        a(f'<rect x="{x}" y="{y}" width="{cw}" height="{ch}" rx="2" '          f'fill="{C["bg"]}" stroke="{bdr}" stroke-width="1"/>')
+        name_lines = _wrap(name, 20)[:2]
+        desc_lines = _desc_lines(description, 28)
+        name_h = len(name_lines) * 13
+        total_h = name_h + (len(desc_lines) * 11 + 4 if desc_lines else 0)
+        sy = y + (ch - total_h) // 2 + 12
         for j, ln in enumerate(name_lines):
-            a(f'<text x="{ccx}" y="{start_y + j*13}" text-anchor="middle" '
-              f'fill="{C["head"]}" font-size="9" font-weight="600">{ln}</text>')
-        desc_y = start_y + name_h + 4
+            a(f'<text x="{ccx}" y="{sy + j*13}" text-anchor="middle" '              f'fill="{C["head"]}" font-size="9" font-weight="600">{ln}</text>')
+        dy2 = sy + name_h + 4
         for j, dl in enumerate(desc_lines):
-            a(f'<text x="{ccx}" y="{desc_y + j*11}" text-anchor="middle" '
-              f'fill="{C["dim"]}" font-size="7">{dl}</text>')
+            a(f'<text x="{ccx}" y="{dy2 + j*11}" text-anchor="middle" '              f'fill="{C["dim"]}" font-size="7">{dl}</text>')
         return ccx, ccy
 
-    def render_vm(x: int, y: int, vm: dict) -> None:
+    def render_vm_card(x, y, vm):
         ccx = x + VM_W // 2
-        a(f'<rect x="{x}" y="{y}" width="{VM_W}" height="{VM_H}" rx="2" '
-          f'fill="{C["vm_bg"]}" stroke="{C["vm_bdr"]}" stroke-width="1" stroke-dasharray="2,2"/>')
-        n_lines = _wrap(vm["name"], 16)[:2]
-        for j, ln in enumerate(n_lines):
-            a(f'<text x="{ccx}" y="{y+14+j*12}" text-anchor="middle" '
-              f'fill="{C["head"]}" font-size="8" font-weight="600">{ln}</text>')
-        if desc := vm.get("description", ""):
-            dl = textwrap.wrap(desc, 20)[:1]
-            if dl:
-                a(f'<text x="{ccx}" y="{y+VM_H-8}" text-anchor="middle" '
-                  f'fill="{C["dim"]}" font-size="6">{dl[0]}</text>')
+        a(f'<rect x="{x}" y="{y}" width="{VM_W}" height="{VM_H}" rx="2" '          f'fill="{C["vm_bg"]}" stroke="{C["vm_bdr"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+        for j, ln in enumerate(_wrap(vm["name"], 16)[:2]):
+            a(f'<text x="{ccx}" y="{y+14+j*12}" text-anchor="middle" '              f'fill="{C["head"]}" font-size="8" font-weight="600">{ln}</text>')
+        if desc := _xml(vm.get("description", "")):
+            short = textwrap.shorten(desc, 22)
+            a(f'<text x="{ccx}" y="{y+VM_H-8}" text-anchor="middle" '              f'fill="{C["dim"]}" font-size="6">{short}</text>')
+        return ccx, y + VM_H // 2
 
-    def render_device_rows(
-        nodes: list[dict],
-        zone_x: int, zone_w: int,
-        card_y_base: int,
-        zone_color: str,
-    ) -> None:
-        """
-        Lay out device cards grouped by topo_level (each level = one row).
-        After any row that contains cluster-primary nodes, render a shared
-        VM sub-row for all VMs of that cluster, centred across the full zone width.
-        """
-        rows = _lab_rows(nodes)
-        dy = 0
-        for row in rows:
-            xs      = _row_xs(len(row), zone_x, zone_w, DW, HGAP)
-            # Collect cluster primaries that have VMs in this row
-            vm_rows: list[tuple[dict, list[dict]]] = []  # (primary_node, vms)
-            for node in row:
-                if node.get("cluster_primary") and node.get("vms"):
-                    vm_rows.append((node, node["vms"]))
-
-            for j, node in enumerate(row):
-                cx, cy = render_card(
-                    xs[j], card_y_base + dy,
-                    node["name"], node.get("description", ""),
-                    zone_color if node.get("status", "active") == "active" else C["off"],
-                )
-                pos_index[node["name"]] = (cx, cy)
-
-            # Render shared VM rows below this device row
-            vm_dy = dy + DH + 14
-            for primary_node, vms in vm_rows:
-                cluster_label = primary_node.get("cluster_name", "")
-                # Cluster label bar
-                if cluster_label:
-                    lbl_w = min(len(cluster_label) * 7 + 20, zone_w - 40)
-                    lbl_x = zone_x + (zone_w - lbl_w) // 2
-                    a(f'<rect x="{lbl_x}" y="{card_y_base + vm_dy}" '
-                      f'width="{lbl_w}" height="14" rx="2" '
-                      f'fill="{C["bg"]}" stroke="{C["vm_bdr"]}" stroke-width="1"/>')
-                    a(f'<text x="{lbl_x + lbl_w//2}" y="{card_y_base + vm_dy + 10}" '
-                      f'text-anchor="middle" fill="{C["dim"]}" '
-                      f'font-size="6" letter-spacing="1">{_xml(cluster_label)}</text>')
-                    vm_dy += 18
-
-                # Draw connector lines from the primary host card down to VMs
-                pcx, pcy = pos_index[primary_node["name"]]
-                vm_y   = card_y_base + vm_dy
-                vm_xs  = _row_xs(len(vms), zone_x, zone_w, VM_W, VM_HGAP)
-                for k, vm in enumerate(vms):
-                    vcx = vm_xs[k] + VM_W // 2
-                    conn_lines.append(
-                        f'<line x1="{pcx}" y1="{pcy + DH//2}" '
-                        f'x2="{vcx}" y2="{vm_y}" '
-                        f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>'
-                    )
-                    render_vm(vm_xs[k], vm_y, vm)
-                vm_dy += VM_H + VGAP
-
-            has_vms = bool(vm_rows)
-            dy += DH + (vm_dy - dy - DH + VGAP if has_vms else 0) + VGAP * 2
-
-    def render_zone_box(x: int, y: int, w: int, h: int, color: str, label: str) -> None:
-        a(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="2" '
-          f'fill="none" stroke="{color}" stroke-width="1" stroke-dasharray="4,4"/>')
-        a(f'<text x="{x+10}" y="{y+15}" fill="{color}" font-size="8" letter-spacing="2">{_xml(label)}</text>')
-
-    # ── TOP ROW: SaaS (left) + Public (right) ─────────────────────────────────
+    def render_zone_box(x, y, w, h, color, label):
+        a(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="2" '          f'fill="none" stroke="{color}" stroke-width="1" stroke-dasharray="4,4"/>')
+        a(f'<text x="{x+10}" y="{y+15}" fill="{color}" font-size="8" '          f'letter-spacing="2">{_xml(label)}</text>')
 
     # SaaS zone
     render_zone_box(saas_x, top_y, SAAS_W, top_h, C["saas"], "SaaS SERVICES")
-    saas_xs = _row_xs(len(saas), saas_x, SAAS_W, DW, HGAP)
-    saas_base_y = top_y + ZONE_HDR + 8
     row_max = max(1, (SAAS_W + HGAP) // (DW + HGAP))
-    dy = 0
+    base_y  = top_y + ZONE_HDR + 8
     for idx, node in enumerate(saas):
-        row_idx = idx // row_max
-        col_idx = idx % row_max
-        row_nodes_count = min(row_max, len(saas) - row_idx * row_max)
-        xs_row = _row_xs(row_nodes_count, saas_x, SAAS_W, DW, HGAP)
-        x_pos = xs_row[col_idx]
-        y_pos = saas_base_y + row_idx * (DH + VGAP * 2)
-        color = node.get("color", C["acc"])
-        ccx, ccy = render_card(x_pos, y_pos, node["name"], node.get("description", ""), color)
+        row_i = idx // row_max
+        col_i = idx  % row_max
+        cnt   = min(row_max, len(saas) - row_i * row_max)
+        xs    = _row_xs(cnt, saas_x, SAAS_W, DW, HGAP)
+        ccx, ccy = render_card(xs[col_i], base_y + row_i * (DH + VGAP * 2),
+                                node["name"], node.get("description",""),
+                                node.get("color", C["acc"]))
         pos_index[node["name"]] = (ccx, ccy)
 
     # Public zone
     render_zone_box(pub_x, top_y, PUB_W, top_h, C["pub"], "PUBLIC INFRASTRUCTURE")
-    if pub:
-        render_device_rows(pub, pub_x, PUB_W, top_y + ZONE_HDR + 8, C["pub"])
+    pub_base = top_y + ZONE_HDR + 8
+    pub_xs   = _row_xs(len(pub), pub_x, PUB_W, DW, HGAP)
+    for j, node in enumerate(pub):
+        bdr = C["pub"] if node.get("status","active") == "active" else C["off"]
+        ccx, ccy = render_card(pub_xs[j], pub_base, node["name"],
+                                node.get("description",""), bdr)
+        pos_index[node["name"]] = (ccx, ccy)
 
-    # ── INTERNET ROW ──────────────────────────────────────────────────────────
+    # Internet band
     inet_cx = W // 2
     inet_cy = inet_y + INTERNET_H // 2
-    # subtle background band
     a(f'<rect x="0" y="{inet_y}" width="{W}" height="{INTERNET_H}" fill="#0c1118"/>')
-    a(f'<ellipse cx="{inet_cx}" cy="{inet_cy}" rx="90" ry="26" '
-      f'fill="none" stroke="{C["border"]}" stroke-width="1.5"/>')
-    a(f'<text x="{inet_cx}" y="{inet_cy+5}" text-anchor="middle" '
-      f'fill="{C["dim"]}" font-size="11" letter-spacing="3">INTERNET</text>')
-
-    # connectors: top zone → internet ellipse
+    a(f'<ellipse cx="{inet_cx}" cy="{inet_cy}" rx="90" ry="26" '      f'fill="none" stroke="{C["border"]}" stroke-width="1.5"/>')
+    a(f'<text x="{inet_cx}" y="{inet_cy+5}" text-anchor="middle" '      f'fill="{C["dim"]}" font-size="11" letter-spacing="3">INTERNET</text>')
     for zone_cx in [saas_x + SAAS_W // 2, pub_x + PUB_W // 2]:
-        a(f'<line x1="{zone_cx}" y1="{top_y + top_h}" x2="{inet_cx}" y2="{inet_cy - 26}" '
-          f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
-    # internet → home lab
-    a(f'<line x1="{inet_cx}" y1="{inet_cy + 26}" x2="{inet_cx}" y2="{lab_y}" '
-      f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
+        a(f'<line x1="{zone_cx}" y1="{top_y+top_h}" x2="{inet_cx}" y2="{inet_cy-26}" '          f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
+    a(f'<line x1="{inet_cx}" y1="{inet_cy+26}" x2="{inet_cx}" y2="{lab_y}" '      f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
 
-    # ── HOME LAB ROW ──────────────────────────────────────────────────────────
+    # Home Lab zone
     render_zone_box(ZONE_PAD, lab_y, LAB_W, lab_h, C["lab"], "HOME LAB")
-    if lab:
-        render_device_rows(lab, ZONE_PAD, LAB_W, lab_y + ZONE_HDR + 8, C["lab"])
 
-    # ── Physical cables ────────────────────────────────────────────────────────
+    rendered_vms: set[str] = set()
+
+    def render_lab_rows(nodes, zone_x, zone_w, card_y_base):
+        rows   = _lab_rows(nodes)
+        row_dy = 0
+        for row in rows:
+            row_y = card_y_base + row_dy
+
+            # Group: cluster nodes vs solo nodes
+            cluster_groups: dict[int, list[dict]] = {}
+            solo_nodes: list[dict] = []
+            for node in row:
+                cid = node.get("cluster_id")
+                if cid and (node.get("cluster_primary") or node.get("cluster_sibling_of")):
+                    cluster_groups.setdefault(cid, []).append(node)
+                else:
+                    solo_nodes.append(node)
+
+            # Build render items with widths
+            items: list[dict] = []
+            for node in solo_nodes:
+                items.append({"type": "solo", "nodes": [node], "width": DW})
+            for cid, members in cluster_groups.items():
+                ms = sorted(members, key=lambda n: n["name"])
+                cw = len(ms) * DW + (len(ms)-1) * HGAP + CLUSTER_PAD * 2
+                items.append({"type": "cluster", "nodes": ms, "cid": cid, "width": cw})
+
+            total_w = sum(it["width"] for it in items) + max(0, len(items)-1) * HGAP
+            cur_x   = zone_x + max(0, (zone_w - total_w) // 2)
+            row_vm_h = 0
+
+            for item in items:
+                if item["type"] == "solo":
+                    node = item["nodes"][0]
+                    bdr  = C["lab"] if node.get("status","active") == "active" else C["off"]
+                    ccx, ccy = render_card(cur_x, row_y + CLUSTER_PAD + 14,
+                                           node["name"], node.get("description",""), bdr)
+                    pos_index[node["name"]] = (ccx, ccy)
+                    vms = [v for v in node.get("vms",[]) if v["name"] not in rendered_vms]
+                    if vms:
+                        vm_tw = len(vms)*VM_W + (len(vms)-1)*VM_HGAP
+                        vm_x0 = ccx - vm_tw // 2
+                        vm_y  = row_y + CLUSTER_PAD + 14 + DH + 16
+                        for k, vm in enumerate(vms):
+                            vx = vm_x0 + k*(VM_W+VM_HGAP)
+                            conn_lines.append(
+                                f'<line x1="{ccx}" y1="{row_y+CLUSTER_PAD+14+DH}" '                                f'x2="{vx+VM_W//2}" y2="{vm_y}" '                                f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+                            render_vm_card(vx, vm_y, vm)
+                            rendered_vms.add(vm["name"])
+                        row_vm_h = max(row_vm_h, VM_H + 16)
+
+                else:
+                    ms   = item["nodes"]
+                    cid  = item["cid"]
+                    cn   = ms[0].get("cluster_name", f"cluster-{cid}")
+                    bx   = cur_x
+                    bw   = item["width"]
+                    bh   = DH + CLUSTER_PAD * 2 + 14
+                    box_cx = bx + bw // 2
+
+                    # Cluster box
+                    a(f'<rect x="{bx}" y="{row_y}" width="{bw}" height="{bh}" rx="3" '                      f'fill="none" stroke="{C["vm_bdr"]}" stroke-width="1" '                      f'stroke-dasharray="3,3"/>')
+                    a(f'<text x="{box_cx}" y="{row_y+10}" text-anchor="middle" '                      f'fill="{C["dim"]}" font-size="7" letter-spacing="1">{_xml(cn)}</text>')
+
+                    inner_xs = _row_xs(len(ms), bx+CLUSTER_PAD, bw-CLUSTER_PAD*2, DW, HGAP)
+                    for j2, node in enumerate(ms):
+                        bdr = C["lab"] if node.get("status","active") == "active" else C["off"]
+                        ccx, ccy = render_card(inner_xs[j2], row_y+14,
+                                               node["name"], node.get("description",""), bdr)
+                        pos_index[node["name"]] = (ccx, ccy)
+
+                    primary = next((n for n in ms if n.get("cluster_primary")), ms[0])
+                    vms = [v for v in primary.get("vms",[]) if v["name"] not in rendered_vms]
+                    if vms:
+                        vm_tw  = len(vms)*VM_W + (len(vms)-1)*VM_HGAP
+                        vm_x0  = box_cx - vm_tw // 2
+                        vm_y   = row_y + bh + 16
+                        box_by = row_y + bh
+                        conn_lines.append(
+                            f'<line x1="{box_cx}" y1="{box_by}" '                            f'x2="{box_cx}" y2="{vm_y}" '                            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+                        for k, vm in enumerate(vms):
+                            vcx = vm_x0 + k*(VM_W+VM_HGAP) + VM_W//2
+                            conn_lines.append(
+                                f'<line x1="{box_cx}" y1="{vm_y}" '                                f'x2="{vcx}" y2="{vm_y}" '                                f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+                            render_vm_card(vm_x0+k*(VM_W+VM_HGAP), vm_y, vm)
+                            rendered_vms.add(vm["name"])
+                        row_vm_h = max(row_vm_h, bh + VM_H + 16)
+
+                cur_x += item["width"] + HGAP
+
+            row_dy += CLUSTER_PAD*2 + 14 + DH + (row_vm_h + VGAP if row_vm_h else 0) + VGAP*2
+
+    render_lab_rows(lab, ZONE_PAD, LAB_W, lab_y + ZONE_HDR + 8)
+
+    # Physical cables
     for (na, nb_) in cables:
         if na in pos_index and nb_ in pos_index:
             ax, ay = pos_index[na]
             bx, by = pos_index[nb_]
             conn_lines.append(
-                f'<line x1="{ax}" y1="{ay}" x2="{bx}" y2="{by}" '
-                f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.7"/>'
-            )
+                f'<line x1="{ax}" y1="{ay}" x2="{bx}" y2="{by}" '                f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.7"/>')
 
-    # ── Logical tunnels ───────────────────────────────────────────────────────
+    # VPN tunnels
     for (na, nb_, label, style) in tunnels:
         if na in pos_index and nb_ in pos_index:
             ax, ay = pos_index[na]
             bx, by = pos_index[nb_]
-            color  = C["acc"] if style == "wireguard" else C["dim"]
-            dash   = "6,4"    if style == "wireguard" else "3,4"
-            mid_x, mid_y = (ax + bx) // 2, (ay + by) // 2
+            color = C["acc"] if style == "wireguard" else C["dim"]
+            dash  = "6,4"    if style == "wireguard" else "3,4"
+            mx, my = (ax+bx)//2, (ay+by)//2
             conn_lines.append(
-                f'<line x1="{ax}" y1="{ay}" x2="{bx}" y2="{by}" '
-                f'stroke="{color}" stroke-width="1.5" stroke-dasharray="{dash}" opacity="0.9"/>'
-            )
+                f'<line x1="{ax}" y1="{ay}" x2="{bx}" y2="{by}" '                f'stroke="{color}" stroke-width="1.5" stroke-dasharray="{dash}" opacity="0.9"/>')
             lk = "[WG] " if style == "wireguard" else ""
             conn_lines.append(
-                f'<rect x="{mid_x-38}" y="{mid_y-9}" width="76" height="16" rx="2" '
-                f'fill="{C["bg"]}" stroke="{color}" stroke-width="1"/>'
-            )
+                f'<rect x="{mx-42}" y="{my-9}" width="84" height="16" rx="2" '                f'fill="{C["bg"]}" stroke="{color}" stroke-width="1"/>')
             conn_lines.append(
-                f'<text x="{mid_x}" y="{mid_y+3}" text-anchor="middle" '
-                f'fill="{color}" font-size="7" letter-spacing="0.5">{lk}{_xml(label)}</text>'
-            )
+                f'<text x="{mx}" y="{my+3}" text-anchor="middle" '                f'fill="{color}" font-size="7" letter-spacing="0.5">{lk}{_xml(label)}</text>')
 
-    # Insert connection lines right after background rect (index 2 = after <svg> + <rect>)
     if conn_lines:
         svg.insert(2, "\n".join(conn_lines))
 
     a('</svg>')
     return "\n".join(svg)
 
-# ══════════════════════════════════════════════════════════════════════════════
+
 #  Main
 # ══════════════════════════════════════════════════════════════════════════════
 
