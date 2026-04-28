@@ -1,21 +1,19 @@
 <svg viewBox="0 0 1100 1182" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
 <rect width="1100" height="1182" fill="#0a0e14"/>
-<rect x="0" y="264" width="1100" height="70" fill="#0c1118"/>
+<rect x="0" y="264" width="1100" height="70" fill="#0c1118" opacity="0.85"/>
 <ellipse cx="550" cy="299" rx="90" ry="26" fill="none" stroke="#1e2a3a" stroke-width="1.5"/>
 <text x="550" y="304" text-anchor="middle" fill="#5a7a94" font-size="11" letter-spacing="3">INTERNET</text>
 <line x1="285" y1="244" x2="550" y2="273" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
 <line x1="815" y1="244" x2="550" y2="273" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
 <line x1="550" y1="412" x2="550" y2="325" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
-<line x1="644" y1="648" x2="644" y2="664" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="644" y1="664" x2="644" y2="664" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="446" y1="1024" x2="446" y2="1040" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="446" y1="1040" x2="371" y2="1040" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="446" y1="1040" x2="521" y2="1040" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="644" y1="669" x2="644" y2="653" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="371" y1="1056" x2="446" y2="1040" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="521" y1="1056" x2="446" y2="1040" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="446" y1="824" x2="738" y2="978" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
-<line x1="446" y1="824" x2="540" y2="978" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
+<line x1="446" y1="824" x2="540" y2="994" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
 <line x1="446" y1="824" x2="154" y2="978" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
-<line x1="550" y1="448" x2="644" y2="602" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
-<line x1="446" y1="824" x2="352" y2="978" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
+<line x1="550" y1="448" x2="644" y2="607" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
+<line x1="446" y1="824" x2="352" y2="994" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
 <line x1="550" y1="448" x2="446" y2="602" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
 <line x1="446" y1="602" x2="446" y2="824" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
 <rect x="28" y="28" width="514" height="216" rx="2" fill="none" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="4,4"/>
@@ -50,14 +48,14 @@
 <text x="446" y="592" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">USW-Lite-8-PoE-Keller</text>
 <text x="446" y="609" text-anchor="middle" fill="#5a7a94" font-size="7">Ubiquiti Switch - Backbone</text>
 <text x="446" y="620" text-anchor="middle" fill="#5a7a94" font-size="7">Home Network</text>
-<rect x="549" y="542" width="190" height="106" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
-<text x="644" y="553" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600" letter-spacing="0.5">DS920+</text>
-<rect x="559" y="566" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="644" y="592" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">synology-ds920plus</text>
-<text x="644" y="609" text-anchor="middle" fill="#5a7a94" font-size="7">NAS + Host for Docker</text>
-<text x="644" y="620" text-anchor="middle" fill="#5a7a94" font-size="7">Containers (e.g. n8n)</text>
-<rect x="574" y="664" width="140" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="644" y="691" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">2N Access Comander</text>
+<rect x="549" y="542" width="190" height="111" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="644" y="562" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600" letter-spacing="0.5">DS920+</text>
+<rect x="559" y="571" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<text x="644" y="597" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">synology-ds920plus</text>
+<text x="644" y="614" text-anchor="middle" fill="#5a7a94" font-size="7">NAS + Host for Docker</text>
+<text x="644" y="625" text-anchor="middle" fill="#5a7a94" font-size="7">Containers (e.g. n8n)</text>
+<rect x="574" y="669" width="140" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="644" y="696" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">2N Access Comander</text>
 <rect x="361" y="788" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="446" y="814" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">USW Pro Max 16 PoE</text>
 <text x="446" y="831" text-anchor="middle" fill="#5a7a94" font-size="7">Top of the Rack Switch Home</text>
@@ -66,21 +64,22 @@
 <text x="154" y="968" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">ansible-RPi3Bplus</text>
 <text x="154" y="985" text-anchor="middle" fill="#5a7a94" font-size="7">RasPi 3B+ as ansible Control</text>
 <text x="154" y="996" text-anchor="middle" fill="#5a7a94" font-size="7">Node</text>
-<rect x="257" y="918" width="378" height="106" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
-<text x="446" y="929" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600" letter-spacing="0.5">hau-hypcl01</text>
-<rect x="267" y="942" width="170" height="72" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
-<text x="352" y="974" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp01</text>
-<text x="352" y="991" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 01</text>
-<rect x="455" y="942" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="540" y="974" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp02</text>
-<text x="540" y="991" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 02</text>
-<rect x="301" y="1040" width="140" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="371" y="1060" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-lgw01</text>
-<text x="371" y="1075" text-anchor="middle" fill="#5a7a94" font-size="6">Webex Local Gateway</text>
-<rect x="451" y="1040" width="140" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="521" y="1055" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-sgw01</text>
-<text x="521" y="1070" text-anchor="middle" fill="#5a7a94" font-size="6">C8000v as Webex</text>
-<text x="521" y="1080" text-anchor="middle" fill="#5a7a94" font-size="6">Survivability Gateway</text>
+<rect x="257" y="918" width="378" height="122" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="446" y="938" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600" letter-spacing="0.5">hau-hypcl01</text>
+<text x="446" y="949" text-anchor="middle" fill="#5a7a94" font-size="6.5">Proxmox VE Cluster</text>
+<rect x="267" y="958" width="170" height="72" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
+<text x="352" y="990" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp01</text>
+<text x="352" y="1007" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 01</text>
+<rect x="455" y="958" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<text x="540" y="990" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp02</text>
+<text x="540" y="1007" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 02</text>
+<rect x="301" y="1056" width="140" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="371" y="1076" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-lgw01</text>
+<text x="371" y="1091" text-anchor="middle" fill="#5a7a94" font-size="6">Webex Local Gateway</text>
+<rect x="451" y="1056" width="140" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="521" y="1071" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-sgw01</text>
+<text x="521" y="1086" text-anchor="middle" fill="#5a7a94" font-size="6">C8000v as Webex</text>
+<text x="521" y="1096" text-anchor="middle" fill="#5a7a94" font-size="6">Survivability Gateway</text>
 <rect x="653" y="942" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="738" y="968" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-sw201</text>
 <text x="738" y="985" text-anchor="middle" fill="#5a7a94" font-size="7">Cisco Switch for Webex Calling</text>
