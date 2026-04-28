@@ -4,14 +4,14 @@
 <line x1="308" y1="456" x2="547" y2="476" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="480" y1="456" x2="413" y2="476" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="480" y1="456" x2="547" y2="476" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="824" y1="456" x2="480" y2="476" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="308" y1="579" x2="652" y2="421" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
-<line x1="308" y1="579" x2="480" y2="421" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
-<line x1="308" y1="579" x2="136" y2="421" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
-<line x1="652" y1="579" x2="824" y2="421" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
-<line x1="308" y1="579" x2="308" y2="421" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
-<line x1="652" y1="579" x2="480" y2="579" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
-<line x1="480" y1="579" x2="308" y2="579" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
+<line x1="652" y1="456" x2="480" y2="476" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="824" y1="421" x2="652" y2="579" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
+<line x1="824" y1="421" x2="480" y2="421" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
+<line x1="824" y1="421" x2="480" y2="579" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
+<line x1="136" y1="421" x2="652" y2="421" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
+<line x1="824" y1="421" x2="308" y2="421" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
+<line x1="136" y1="421" x2="308" y2="579" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
+<line x1="308" y1="579" x2="824" y2="421" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
 <rect x="28" y="28" width="337" height="220" rx="2" fill="none" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="4,4"/>
 <text x="38" y="43" fill="#1e2a3a" font-size="8" letter-spacing="2">SaaS SERVICES</text>
 <rect x="31" y="56" width="158" height="70" rx="2" fill="#0a0e14" stroke="#0077a8" stroke-width="1"/>
@@ -37,9 +37,9 @@
 <rect x="28" y="358" width="904" height="288" rx="2" fill="none" stroke="#00e5a0" stroke-width="1" stroke-dasharray="4,4"/>
 <text x="38" y="373" fill="#00e5a0" font-size="8" letter-spacing="2">HOME LAB</text>
 <rect x="57" y="386" width="158" height="70" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="136" y="413" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">ansible-RPi3Bplus</text>
-<text x="136" y="430" text-anchor="middle" fill="#5a7a94" font-size="7">RasPi 3B+ as ansible</text>
-<text x="136" y="441" text-anchor="middle" fill="#5a7a94" font-size="7">Control Node</text>
+<text x="136" y="413" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">UXG-Fiber</text>
+<text x="136" y="430" text-anchor="middle" fill="#5a7a94" font-size="7">Ubiquiti Gateway as</text>
+<text x="136" y="441" text-anchor="middle" fill="#5a7a94" font-size="7">Firewall and Router</text>
 <rect x="229" y="386" width="158" height="70" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
 <text x="308" y="419" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp01</text>
 <text x="308" y="436" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 01</text>
@@ -59,27 +59,27 @@
 <text x="547" y="490" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-sgw01</text>
 <text x="547" y="508" text-anchor="middle" fill="#5a7a94" font-size="6">C8000v as Webex</text>
 <rect x="573" y="386" width="158" height="70" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="652" y="413" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-sw201</text>
-<text x="652" y="430" text-anchor="middle" fill="#5a7a94" font-size="7">Cisco Switch for Webex</text>
-<text x="652" y="441" text-anchor="middle" fill="#5a7a94" font-size="7">Calling Endpoints</text>
-<rect x="745" y="386" width="158" height="70" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="824" y="413" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">synology-ds920plus</text>
-<text x="824" y="430" text-anchor="middle" fill="#5a7a94" font-size="7">NAS + Host for Docker</text>
-<text x="824" y="441" text-anchor="middle" fill="#5a7a94" font-size="7">Containers (e.g. n8n)</text>
+<text x="652" y="413" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">synology-ds920plus</text>
+<text x="652" y="430" text-anchor="middle" fill="#5a7a94" font-size="7">NAS + Host for Docker</text>
+<text x="652" y="441" text-anchor="middle" fill="#5a7a94" font-size="7">Containers (e.g. n8n)</text>
 <rect x="417" y="476" width="126" height="40" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
 <text x="480" y="490" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">2N Access</text>
 <text x="480" y="502" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">Comander</text>
+<rect x="745" y="386" width="158" height="70" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<text x="824" y="413" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">USW Pro Max 16 PoE</text>
+<text x="824" y="430" text-anchor="middle" fill="#5a7a94" font-size="7">Top of the Rack Switch</text>
+<text x="824" y="441" text-anchor="middle" fill="#5a7a94" font-size="7">Home Office &amp; Lab</text>
 <rect x="229" y="544" width="158" height="70" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="308" y="571" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">USW Pro Max 16 PoE</text>
-<text x="308" y="588" text-anchor="middle" fill="#5a7a94" font-size="7">Top of the Rack Switch</text>
-<text x="308" y="599" text-anchor="middle" fill="#5a7a94" font-size="7">Home Office &amp; Lab</text>
+<text x="308" y="565" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">USW-Lite-8-PoE-</text>
+<text x="308" y="578" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Keller</text>
+<text x="308" y="595" text-anchor="middle" fill="#5a7a94" font-size="7">Ubiquiti Switch - Backbone</text>
+<text x="308" y="606" text-anchor="middle" fill="#5a7a94" font-size="7">Home Network</text>
 <rect x="401" y="544" width="158" height="70" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="480" y="565" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">USW-Lite-8-PoE-</text>
-<text x="480" y="578" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Keller</text>
-<text x="480" y="595" text-anchor="middle" fill="#5a7a94" font-size="7">Ubiquiti Switch - Backbone</text>
-<text x="480" y="606" text-anchor="middle" fill="#5a7a94" font-size="7">Home Network</text>
+<text x="480" y="571" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">ansible-RPi3Bplus</text>
+<text x="480" y="588" text-anchor="middle" fill="#5a7a94" font-size="7">RasPi 3B+ as ansible</text>
+<text x="480" y="599" text-anchor="middle" fill="#5a7a94" font-size="7">Control Node</text>
 <rect x="573" y="544" width="158" height="70" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="652" y="571" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">UXG-Fiber</text>
-<text x="652" y="588" text-anchor="middle" fill="#5a7a94" font-size="7">Ubiquiti Gateway as</text>
-<text x="652" y="599" text-anchor="middle" fill="#5a7a94" font-size="7">Firewall and Router</text>
+<text x="652" y="571" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-sw201</text>
+<text x="652" y="588" text-anchor="middle" fill="#5a7a94" font-size="7">Cisco Switch for Webex</text>
+<text x="652" y="599" text-anchor="middle" fill="#5a7a94" font-size="7">Calling Endpoints</text>
 </svg>
