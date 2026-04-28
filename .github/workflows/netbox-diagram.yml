@@ -1,15 +1,12 @@
 name: Netbox → Network Diagram
 
 on:
-  # Run every Monday at 18:00 UTC
   schedule:
-    - cron: '0 18 * * 1'
-
-  # Allow manual trigger from GitHub Actions UI
-  workflow_dispatch:
+    - cron: '0 18 * * 1'   # Every Sunday 03:00 UTC
+  workflow_dispatch:        # Manual trigger from Actions UI
 
 permissions:
-  contents: write   # needed to commit the generated diagram back
+  contents: write           # Required to commit diagram back to repo
 
 jobs:
   generate-diagram:
@@ -19,25 +16,24 @@ jobs:
     steps:
       # ── 1. Checkout ──────────────────────────────────────────────────────────
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
       # ── 2. Python setup ───────────────────────────────────────────────────────
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       # ── 3. Install dependencies ───────────────────────────────────────────────
       - name: Install Python dependencies
         run: |
           pip install --upgrade pip
-          # cairosvg for optional PNG export (requires system libs)
           sudo apt-get install -y libcairo2-dev pkg-config python3-dev 2>/dev/null || true
           pip install cairosvg || echo "cairosvg install failed – PNG export skipped"
 
-      # ── 4. Create assets directory (if not present) ───────────────────────────
+      # ── 4. Create assets directory ────────────────────────────────────────────
       - name: Ensure assets directory exists
         run: mkdir -p assets
 
@@ -52,15 +48,16 @@ jobs:
       - name: Check for diagram changes
         id: diff
         run: |
-          git diff --quiet assets/ && echo "changed=false" >> "$GITHUB_OUTPUT" \
-            || echo "changed=true" >> "$GITHUB_OUTPUT"
+          git diff --quiet assets/ \
+            && echo "changed=false" >> "$GITHUB_OUTPUT" \
+            || echo "changed=true"  >> "$GITHUB_OUTPUT"
 
-      # ── 7. Commit & push (only if something changed) ──────────────────────────
+      # ── 7. Commit & push ──────────────────────────────────────────────────────
       - name: Commit and push updated diagram
         if: steps.diff.outputs.changed == 'true'
         run: |
           git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/diagram.svg assets/diagram.png assets/diagram_meta.json || true
           git commit -m "chore: update network diagram [skip ci]
 
@@ -70,4 +67,4 @@ jobs:
       # ── 8. No-op notice ───────────────────────────────────────────────────────
       - name: No changes detected
         if: steps.diff.outputs.changed == 'false'
-        run: echo "Diagram unchanged since last run – nothing to commit."
+        run: echo "Diagram unchanged – nothing to commit."
