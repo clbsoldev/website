@@ -169,6 +169,14 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
     print("[INFO] Fetching /dcim/devices/ …")
     raw_devices = nb_get("/dcim/devices/")
 
+    # Debug: print all tags found across all devices so we can verify slug names
+    all_tag_slugs: set[str] = set()
+    for d in raw_devices:
+        for t in (d.get("tags") or []):
+            all_tag_slugs.add(t.get("slug", ""))
+    print(f"[DEBUG] All tag slugs found in Netbox: {sorted(all_tag_slugs)}")
+    print(f"[DEBUG] Looking for: '{TAG_PUBLIC}' and '{TAG_HOMELAB}'")
+
     pub_nodes: list[dict] = []
     lab_nodes: list[dict] = []
 
@@ -186,12 +194,23 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
             "status":      _str(d.get("status"), "value") or "active",
             "cluster_id":  (d.get("cluster") or {}).get("id"),
             "no_vms":      TAG_NO_VMS in tags,
+            "sort_key":    d.get("name") or "",
             "vms":         [],
         }
         if in_pub:
             pub_nodes.append(node)
         if in_lab:
             lab_nodes.append(node)
+
+    # Sort: public alphabetically, homelab: gateway first, then cluster hosts
+    # (cluster members = have a cluster_id), then rest alphabetically
+    pub_nodes.sort(key=lambda n: n["sort_key"])
+    lab_nodes.sort(key=lambda n: (
+        0 if any(kw in n["name"].lower() for kw in ("gateway", "gw", "uxg", "usg", "router")) else
+        1 if n["cluster_id"] else
+        2,
+        n["sort_key"]
+    ))
 
     print(f"[INFO] Tagged → public={len(pub_nodes)}, homelab={len(lab_nodes)} / {len(raw_devices)} total")
 
