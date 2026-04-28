@@ -54,7 +54,7 @@
 <text x="644" y="597" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">synology-ds920plus</text>
 <text x="644" y="614" text-anchor="middle" fill="#5a7a94" font-size="7">NAS + Host for Docker</text>
 <text x="644" y="625" text-anchor="middle" fill="#5a7a94" font-size="7">Containers (e.g. n8n)</text>
-<rect x="574" y="669" width="140" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
+<rect x="574" y="669" width="140" height="44" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
 <text x="644" y="696" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">2N Access Comander</text>
 <rect x="361" y="788" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="446" y="814" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">USW Pro Max 16 PoE</text>
@@ -73,12 +73,13 @@
 <rect x="455" y="958" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="540" y="990" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp02</text>
 <text x="540" y="1007" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 02</text>
-<rect x="301" y="1056" width="140" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="371" y="1076" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-lgw01</text>
-<text x="371" y="1091" text-anchor="middle" fill="#5a7a94" font-size="6">Webex Local Gateway</text>
-<rect x="451" y="1056" width="140" height="44" rx="2" fill="#0d1219" stroke="#2a3a4a" stroke-width="1" stroke-dasharray="2,2"/>
+<rect x="301" y="1056" width="140" height="44" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="371" y="1071" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-lgw01</text>
+<text x="371" y="1086" text-anchor="middle" fill="#5a7a94" font-size="6">Webex Calling</text>
+<text x="371" y="1096" text-anchor="middle" fill="#5a7a94" font-size="6">Registration Based</text>
+<rect x="451" y="1056" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
 <text x="521" y="1071" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-sgw01</text>
-<text x="521" y="1086" text-anchor="middle" fill="#5a7a94" font-size="6">C8000v as Webex</text>
+<text x="521" y="1086" text-anchor="middle" fill="#5a7a94" font-size="6">Webex Calling</text>
 <text x="521" y="1096" text-anchor="middle" fill="#5a7a94" font-size="6">Survivability Gateway</text>
 <rect x="653" y="942" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="738" y="968" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-sw201</text>
