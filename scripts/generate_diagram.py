@@ -241,30 +241,41 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
 
     if raw_tunnels:
         print(f"[INFO] Found {len(raw_tunnels)} VPN tunnel(s) in Netbox")
-        # We need terminations per tunnel: /vpn/tunnel-terminations/?tunnel_id=X
+        # Fetch all terminations once, then group by tunnel id
+        all_terms = nb_get("/vpn/tunnel-terminations/")
+        terms_by_tunnel: dict[int, list[dict]] = defaultdict(list)
+        for term in all_terms:
+            tid_ = (term.get("tunnel") or {}).get("id")
+            if tid_:
+                terms_by_tunnel[tid_].append(term)
+
         for t in raw_tunnels:
             tid      = t.get("id")
             label    = t.get("name") or "VPN Tunnel"
             encap    = _str(t.get("encapsulation"), "value").lower()
             style    = "wireguard" if "wireguard" in encap else "logical"
 
-            terms = nb_get(f"/vpn/tunnel-terminations/?tunnel_id={tid}") if tid else []
-            # Extract device names from termination → interface → device
+            terms = terms_by_tunnel.get(tid, [])
+            # Termination object can be an Interface (has .device) or IP address
             dev_names: list[str] = []
             for term in terms:
-                iface = term.get("termination") or {}
-                dev   = iface.get("device") or {}
-                name  = dev.get("name") or ""
+                obj  = term.get("termination") or {}
+                # Interface termination: obj.device.name
+                dev  = obj.get("device") or {}
+                name = dev.get("name") or ""
+                # Fallback: if termination is the device itself
+                if not name:
+                    name = obj.get("name") or ""
                 if name and name not in dev_names:
                     dev_names.append(name)
 
             if len(dev_names) >= 2:
                 tunnels.append((dev_names[0], dev_names[1], label, style))
-                print(f"  → Tunnel '{label}' ({style}): {dev_names[0]} ↔ {dev_names[1]}")
+                print(f"  -> Tunnel '{label}' ({style}): {dev_names[0]} <-> {dev_names[1]}")
             elif len(dev_names) == 1:
-                print(f"  [WARN] Tunnel '{label}' only has 1 resolved endpoint: {dev_names[0]}")
+                print(f"  [WARN] Tunnel '{label}': only 1 endpoint resolved ({dev_names[0]})")
             else:
-                print(f"  [WARN] Tunnel '{label}' has no resolvable device endpoints – skipped")
+                print(f"  [WARN] Tunnel '{label}': no device endpoints resolved – skipped")
     else:
         print("[INFO] No VPN tunnels in Netbox – using fallback list")
 
@@ -456,7 +467,7 @@ def build_svg(
     # ── TOP ROW: SaaS (left) + Public (right) ─────────────────────────────────
 
     # SaaS zone
-    render_zone_box(saas_x, top_y, SAAS_W, top_h, C["saas"], "⬡ SAAS SERVICES")
+    render_zone_box(saas_x, top_y, SAAS_W, top_h, C["saas"], "SaaS SERVICES")
     saas_xs = _row_xs(len(saas), saas_x, SAAS_W, DW, HGAP)
     saas_base_y = top_y + ZONE_HDR + 8
     row_max = max(1, (SAAS_W + HGAP) // (DW + HGAP))
@@ -473,7 +484,7 @@ def build_svg(
         pos_index[node["name"]] = (ccx, ccy)
 
     # Public zone
-    render_zone_box(pub_x, top_y, PUB_W, top_h, C["pub"], "☁ PUBLIC INFRASTRUCTURE")
+    render_zone_box(pub_x, top_y, PUB_W, top_h, C["pub"], "PUBLIC INFRASTRUCTURE")
     if pub:
         render_device_rows(pub, pub_x, PUB_W, top_y + ZONE_HDR + 8, C["pub"])
 
@@ -496,7 +507,7 @@ def build_svg(
       f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
 
     # ── HOME LAB ROW ──────────────────────────────────────────────────────────
-    render_zone_box(ZONE_PAD, lab_y, LAB_W, lab_h, C["lab"], "🏠 HOME LAB")
+    render_zone_box(ZONE_PAD, lab_y, LAB_W, lab_h, C["lab"], "HOME LAB")
     if lab:
         render_device_rows(lab, ZONE_PAD, LAB_W, lab_y + ZONE_HDR + 8, C["lab"])
 
@@ -522,7 +533,7 @@ def build_svg(
                 f'<line x1="{ax}" y1="{ay}" x2="{bx}" y2="{by}" '
                 f'stroke="{color}" stroke-width="1.5" stroke-dasharray="{dash}" opacity="0.9"/>'
             )
-            lk = "🔒 " if style == "wireguard" else ""
+            lk = "[WG] " if style == "wireguard" else ""
             conn_lines.append(
                 f'<rect x="{mid_x-38}" y="{mid_y-9}" width="76" height="16" rx="2" '
                 f'fill="{C["bg"]}" stroke="{color}" stroke-width="1"/>'
@@ -545,7 +556,7 @@ def build_svg(
 
 def main() -> None:
     pub, lab, cables, tunnels, raw_count = fetch_all()
-    now    = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+    now    = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     source = "netbox"
 
     if not pub and not lab:
@@ -595,3 +606,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+  
