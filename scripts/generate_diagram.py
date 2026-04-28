@@ -350,12 +350,14 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
             style = "wireguard" if "wireguard" in encap else "logical"
             dev_names: list[str] = []
             for term in terms_by_tunnel.get(tid, []):
-                # termination points to an Interface object which has a .device
                 obj  = term.get("termination") or {}
-                # obj is the Interface: obj["device"]["name"] is what we want
+                # Device interface: obj["device"]["name"]
                 dev  = obj.get("device") or {}
                 name = dev.get("name") or ""
-                # Never fall back to obj["name"] – that would be the interface name (e.g. "wg0")
+                # VM interface: obj["virtual_machine"]["name"]
+                if not name:
+                    vm_ref = obj.get("virtual_machine") or {}
+                    name   = vm_ref.get("name") or ""
                 if name and name not in dev_names:
                     dev_names.append(name)
             if len(dev_names) >= 2:
@@ -405,13 +407,13 @@ def _topo_sort(
     while queue:
         current = queue.pop(0)
         cur_level = level_of[current]
-        # Only traverse to neighbours that are tagged homelab nodes
         neighbours = sorted(
             adj.get(current, set()) & node_map.keys() - visited
         )
         for nb_ in neighbours:
             visited.add(nb_)
             level_of[nb_] = cur_level + 1
+            node_map[nb_]["_parent"] = current   # store parent for tree layout
             queue.append(nb_)
 
     # Assign levels; unreachable nodes go one level below deepest reached
@@ -492,23 +494,161 @@ def _lab_rows(nodes: list[dict]) -> list[list[dict]]:
         rows.setdefault(lv, []).append(n)
     return [rows[lv] for lv in sorted(rows)]
 
-def _content_h(nodes: list[dict], zone_w: int) -> int:
-    """Estimate total height of home lab content (topo rows + cluster boxes + VMs)."""
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  SVG constants (layout)
+# ══════════════════════════════════════════════════════════════════════════════
+
+DW, DH        = 170, 72    # device card width / height
+VM_W, VM_H    = 140, 44    # VM card
+HGAP          = 18          # horizontal gap between sibling cards
+VGAP          = 12          # vertical gap between rows
+VM_HGAP       = 10
+CLUSTER_PAD   = 10          # padding inside cluster box
+ZONE_HDR      = 20
+ZONE_PAD      = 28
+INTERNET_H    = 70
+ROW_GAP       = 48          # vertical gap between topo rows
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  Balanced-tree layout helpers
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _lab_rows(nodes: list[dict]) -> list[list[dict]]:
+    from collections import OrderedDict
+    rows: dict[int, list[dict]] = {}
+    for n in nodes:
+        lv = n.get("topo_level", 0)
+        rows.setdefault(lv, []).append(n)
+    return [rows[lv] for lv in sorted(rows)]
+
+
+def _item_width(item: dict) -> int:
+    """Natural width of a render item (solo card or cluster box)."""
+    if item["type"] == "solo":
+        return DW
+    members = item["nodes"]
+    return len(members) * DW + (len(members) - 1) * HGAP + CLUSTER_PAD * 2
+
+
+def _build_items(row: list[dict]) -> list[dict]:
+    """Convert a topo row into render items (solo | cluster)."""
+    cluster_groups: dict[int, list[dict]] = {}
+    solo: list[dict] = []
+    for node in row:
+        cid = node.get("cluster_id")
+        if cid and (node.get("cluster_primary") or node.get("cluster_sibling_of")):
+            cluster_groups.setdefault(cid, []).append(node)
+        else:
+            solo.append(node)
+    items: list[dict] = []
+    for node in solo:
+        items.append({"type": "solo", "nodes": [node]})
+    for cid, members in cluster_groups.items():
+        ms = sorted(members, key=lambda n: n["name"])
+        items.append({"type": "cluster", "nodes": ms, "cid": cid})
+    # Preserve original order by first node name
+    items.sort(key=lambda it: it["nodes"][0]["name"])
+    return items
+
+
+def _assign_x_positions(
+    rows_items: list[list[dict]],
+    zone_cx: int,
+) -> dict[str, int]:
+    """
+    Balanced-tree horizontal layout.
+    Root row centred on zone_cx.
+    Each subsequent row: children centred under their parent.
+    Returns mapping: node_name → centre_x.
+    """
+    name_cx: dict[str, int] = {}  # node_name → centre_x
+
+    # Build parent lookup from topo adjacency (parent = node in level above
+    # that is connected via cable). We use the adj graph stored on items.
+    # Simpler approach: for each level, collect items and their parents from
+    # the level above using the cable adjacency passed in via node["_parent"].
+    # (We'll set _parent during _topo_sort.)
+
+    for row_idx, items in enumerate(rows_items):
+        if row_idx == 0:
+            # Root row: centre on zone_cx
+            total_w = sum(_item_width(it) for it in items) + (len(items)-1)*HGAP
+            cur_x   = zone_cx - total_w // 2
+            for it in items:
+                iw = _item_width(it)
+                icx = cur_x + iw // 2
+                for node in it["nodes"]:
+                    name_cx[node["name"]] = icx
+                it["_cx"] = icx
+                it["_w"]  = iw
+                cur_x += iw + HGAP
+        else:
+            # Group items by their parent item's centre_x
+            # parent_cx → [items]
+            from collections import defaultdict as _dd
+            parent_groups: dict[int, list[dict]] = _dd(list)
+            orphans: list[dict] = []
+            for it in items:
+                parent_name = it["nodes"][0].get("_parent")
+                if parent_name and parent_name in name_cx:
+                    pcx = name_cx[parent_name]
+                    parent_groups[pcx].append(it)
+                else:
+                    orphans.append(it)
+
+            # Layout each parent group centred under its parent
+            for pcx in sorted(parent_groups):
+                group = parent_groups[pcx]
+                group_w = sum(_item_width(it) for it in group) + (len(group)-1)*HGAP
+                cur_x   = pcx - group_w // 2
+                for it in group:
+                    iw  = _item_width(it)
+                    icx = cur_x + iw // 2
+                    for node in it["nodes"]:
+                        name_cx[node["name"]] = icx
+                    it["_cx"] = icx
+                    it["_w"]  = iw
+                    cur_x += iw + HGAP
+
+            # Orphans centred on zone_cx
+            if orphans:
+                ow = sum(_item_width(it) for it in orphans) + (len(orphans)-1)*HGAP
+                cur_x = zone_cx - ow // 2
+                for it in orphans:
+                    iw  = _item_width(it)
+                    icx = cur_x + iw // 2
+                    for node in it["nodes"]:
+                        name_cx[node["name"]] = icx
+                    it["_cx"] = icx
+                    it["_w"]  = iw
+                    cur_x += iw + HGAP
+
+    return name_cx
+
+
+def _zone_h_lab(nodes: list[dict]) -> int:
+    """Estimate home lab zone height."""
     if not nodes:
-        return DH
+        return DH + ZONE_HDR + 20
     rows = _lab_rows(nodes)
-    total = 0
+    total = ZONE_HDR + 12
     for row in rows:
-        cluster_primaries = [n for n in row if n.get("cluster_primary") and n.get("vms")]
-        vm_extra = sum(CLUSTER_PAD * 2 + VM_H + 28 + 14 for _ in cluster_primaries)
-        total += DH + CLUSTER_PAD * 2 + 14 + vm_extra + VGAP * 2
-    return total
+        items = _build_items(row)
+        row_h = CLUSTER_PAD * 2 + 14 + DH  # cluster box height
+        # Check if any item has VMs
+        for it in items:
+            primary = next((n for n in it["nodes"] if n.get("cluster_primary")), it["nodes"][0])
+            if primary.get("vms"):
+                row_h += VM_H + 24
+                break
+        total += row_h + ROW_GAP
+    return total + 8
 
-def _zone_h(nodes: list[dict], zone_w: int) -> int:
-    return _content_h(nodes, zone_w) + ZONE_HDR + 20
 
-# Extra padding inside cluster box
-CLUSTER_PAD = 10
+# ══════════════════════════════════════════════════════════════════════════════
+#  SVG builder
+# ══════════════════════════════════════════════════════════════════════════════
 
 def build_svg(
     saas:    list[dict],
@@ -521,217 +661,270 @@ def build_svg(
 
     TOP_PAD  = ZONE_PAD
     TOP_GAP  = 16
-    SAAS_W   = int((W - 2 * TOP_PAD - TOP_GAP) * 0.42)
+    HALF     = (W - 2 * TOP_PAD - TOP_GAP) // 2
+    SAAS_W   = HALF
     PUB_W    = W - 2 * TOP_PAD - TOP_GAP - SAAS_W
     saas_x   = TOP_PAD
     pub_x    = TOP_PAD + SAAS_W + TOP_GAP
     top_y    = ZONE_PAD
 
-    def _saas_h() -> int:
-        row_max = max(1, (SAAS_W + HGAP) // (DW + HGAP))
-        rows = (len(saas) + row_max - 1) // row_max if saas else 1
-        return rows * DH + (rows - 1) * VGAP * 2 + ZONE_HDR + 20
+    def _grid_h(nodes_list, zone_w):
+        if not nodes_list:
+            return DH + ZONE_HDR + 20
+        row_max = max(1, (zone_w + HGAP) // (DW + HGAP))
+        rows    = (len(nodes_list) + row_max - 1) // row_max
+        return rows * DH + (rows-1)*(VGAP*2) + ZONE_HDR + 28
 
-    saas_h  = _saas_h()
-    pub_h   = _zone_h(pub, PUB_W) if pub else DH + ZONE_HDR + 20
-    top_h   = max(saas_h, pub_h)
-    inet_y  = top_y + top_h + 20
-    LAB_W   = W - 2 * ZONE_PAD
-    lab_y   = inet_y + INTERNET_H + 20
-    lab_h   = _zone_h(lab, LAB_W) if lab else DH + ZONE_HDR + 20
-    H       = lab_y + lab_h + ZONE_PAD + 8
+    saas_h = _grid_h(saas, SAAS_W)
+    pub_h  = _grid_h(pub,  PUB_W)
+    top_h  = max(saas_h, pub_h)
+    inet_y = top_y + top_h + 20
+    LAB_W  = W - 2 * ZONE_PAD
+    lab_y  = inet_y + INTERNET_H + 20
+    lab_h  = _zone_h_lab(lab)
+    H      = lab_y + lab_h + ZONE_PAD + 8
 
     svg: list[str] = []
     a = svg.append
     conn_lines: list[str] = []
-    pos_index: dict[str, tuple[int, int]] = {}
+    pos_index:  dict[str, tuple[int,int]] = {}
 
-    a(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '      f'font-family="IBM Plex Mono, monospace">')
+    a(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '
+      f'font-family="IBM Plex Mono, monospace">')
     a(f'<rect width="{W}" height="{H}" fill="{C["bg"]}"/>')
 
+    # ── Primitives ─────────────────────────────────────────────────────────────
+
+    def _text_lines(text: str, max_w: int, wrap_w: int) -> list[str]:
+        return _wrap(text, wrap_w)[:3]
+
     def render_card(x, y, name, description, bdr, cw=DW, ch=DH):
-        ccx, ccy = x + cw // 2, y + ch // 2
-        a(f'<rect x="{x}" y="{y}" width="{cw}" height="{ch}" rx="2" '          f'fill="{C["bg"]}" stroke="{bdr}" stroke-width="1"/>')
-        name_lines = _wrap(name, 20)[:2]
-        desc_lines = _desc_lines(description, 28)
-        name_h = len(name_lines) * 13
-        total_h = name_h + (len(desc_lines) * 11 + 4 if desc_lines else 0)
-        sy = y + (ch - total_h) // 2 + 12
-        for j, ln in enumerate(name_lines):
-            a(f'<text x="{ccx}" y="{sy + j*13}" text-anchor="middle" '              f'fill="{C["head"]}" font-size="9" font-weight="600">{ln}</text>')
-        dy2 = sy + name_h + 4
-        for j, dl in enumerate(desc_lines):
-            a(f'<text x="{ccx}" y="{dy2 + j*11}" text-anchor="middle" '              f'fill="{C["dim"]}" font-size="7">{dl}</text>')
+        ccx = x + cw // 2
+        ccy = y + ch // 2
+        a(f'<rect x="{x}" y="{y}" width="{cw}" height="{ch}" rx="2" '
+          f'fill="{C["bg"]}" stroke="{bdr}" stroke-width="1"/>')
+        nls = _wrap(name, 22)[:2]
+        dls = _desc_lines(description, 30)
+        nh  = len(nls) * 13
+        th  = nh + (len(dls)*11 + 4 if dls else 0)
+        sy  = y + (ch - th) // 2 + 12
+        for j, ln in enumerate(nls):
+            a(f'<text x="{ccx}" y="{sy+j*13}" text-anchor="middle" '
+              f'fill="{C["head"]}" font-size="9" font-weight="600">{ln}</text>')
+        dy2 = sy + nh + 4
+        for j, dl in enumerate(dls):
+            a(f'<text x="{ccx}" y="{dy2+j*11}" text-anchor="middle" '
+              f'fill="{C["dim"]}" font-size="7">{dl}</text>')
         return ccx, ccy
 
     def render_vm_card(x, y, vm):
         ccx = x + VM_W // 2
-        a(f'<rect x="{x}" y="{y}" width="{VM_W}" height="{VM_H}" rx="2" '          f'fill="{C["vm_bg"]}" stroke="{C["vm_bdr"]}" stroke-width="1" stroke-dasharray="2,2"/>')
-        for j, ln in enumerate(_wrap(vm["name"], 16)[:2]):
-            a(f'<text x="{ccx}" y="{y+14+j*12}" text-anchor="middle" '              f'fill="{C["head"]}" font-size="8" font-weight="600">{ln}</text>')
-        if desc := _xml(vm.get("description", "")):
-            short = textwrap.shorten(desc, 22)
-            a(f'<text x="{ccx}" y="{y+VM_H-8}" text-anchor="middle" '              f'fill="{C["dim"]}" font-size="6">{short}</text>')
+        a(f'<rect x="{x}" y="{y}" width="{VM_W}" height="{VM_H}" rx="2" '
+          f'fill="{C["vm_bg"]}" stroke="{C["vm_bdr"]}" stroke-width="1" '
+          f'stroke-dasharray="2,2"/>')
+        nls = _wrap(vm["name"], 18)[:2]
+        nh  = len(nls) * 12
+        # description — allow more chars, no shortening
+        dls = _desc_lines(vm.get("description",""), 22)
+        th  = nh + (len(dls)*10+3 if dls else 0)
+        sy  = y + (VM_H - th) // 2 + 11
+        for j, ln in enumerate(nls):
+            a(f'<text x="{ccx}" y="{sy+j*12}" text-anchor="middle" '
+              f'fill="{C["head"]}" font-size="8" font-weight="600">{ln}</text>')
+        dy2 = sy + nh + 3
+        for j, dl in enumerate(dls):
+            a(f'<text x="{ccx}" y="{dy2+j*10}" text-anchor="middle" '
+              f'fill="{C["dim"]}" font-size="6">{dl}</text>')
         return ccx, y + VM_H // 2
 
     def render_zone_box(x, y, w, h, color, label):
-        a(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="2" '          f'fill="none" stroke="{color}" stroke-width="1" stroke-dasharray="4,4"/>')
-        a(f'<text x="{x+10}" y="{y+15}" fill="{color}" font-size="8" '          f'letter-spacing="2">{_xml(label)}</text>')
+        a(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="2" '
+          f'fill="none" stroke="{color}" stroke-width="1" stroke-dasharray="4,4"/>')
+        a(f'<text x="{x+10}" y="{y+15}" fill="{color}" font-size="8" '
+          f'letter-spacing="2">{_xml(label)}</text>')
 
-    # SaaS zone
+    # ── SaaS zone ─────────────────────────────────────────────────────────────
     render_zone_box(saas_x, top_y, SAAS_W, top_h, C["saas"], "SaaS SERVICES")
-    row_max = max(1, (SAAS_W + HGAP) // (DW + HGAP))
-    base_y  = top_y + ZONE_HDR + 8
+    row_max  = max(1, (SAAS_W + HGAP) // (DW + HGAP))
+    base_y   = top_y + ZONE_HDR + 14
     for idx, node in enumerate(saas):
-        row_i = idx // row_max
-        col_i = idx  % row_max
-        cnt   = min(row_max, len(saas) - row_i * row_max)
-        xs    = _row_xs(cnt, saas_x, SAAS_W, DW, HGAP)
-        ccx, ccy = render_card(xs[col_i], base_y + row_i * (DH + VGAP * 2),
-                                node["name"], node.get("description",""),
-                                node.get("color", C["acc"]))
+        ri = idx // row_max
+        ci = idx  % row_max
+        cnt = min(row_max, len(saas) - ri * row_max)
+        total_rw = cnt * DW + (cnt-1) * HGAP
+        rx0 = saas_x + (SAAS_W - total_rw) // 2
+        ccx, ccy = render_card(
+            rx0 + ci*(DW+HGAP), base_y + ri*(DH+VGAP*2),
+            node["name"], node.get("description",""),
+            node.get("color", C["acc"]))
         pos_index[node["name"]] = (ccx, ccy)
 
-    # Public zone
+    # ── Public zone ────────────────────────────────────────────────────────────
     render_zone_box(pub_x, top_y, PUB_W, top_h, C["pub"], "PUBLIC INFRASTRUCTURE")
-    pub_base = top_y + ZONE_HDR + 8
-    pub_xs   = _row_xs(len(pub), pub_x, PUB_W, DW, HGAP)
-    for j, node in enumerate(pub):
+    row_max2 = max(1, (PUB_W + HGAP) // (DW + HGAP))
+    base_y2  = top_y + ZONE_HDR + 14
+    for idx, node in enumerate(pub):
+        ri = idx // row_max2
+        ci = idx  % row_max2
+        cnt = min(row_max2, len(pub) - ri * row_max2)
+        total_rw = cnt * DW + (cnt-1) * HGAP
+        rx0 = pub_x + (PUB_W - total_rw) // 2
         bdr = C["pub"] if node.get("status","active") == "active" else C["off"]
-        ccx, ccy = render_card(pub_xs[j], pub_base, node["name"],
-                                node.get("description",""), bdr)
+        ccx, ccy = render_card(
+            rx0 + ci*(DW+HGAP), base_y2 + ri*(DH+VGAP*2),
+            node["name"], node.get("description",""), bdr)
         pos_index[node["name"]] = (ccx, ccy)
 
-    # Internet band
+    # ── Internet ───────────────────────────────────────────────────────────────
     inet_cx = W // 2
     inet_cy = inet_y + INTERNET_H // 2
     a(f'<rect x="0" y="{inet_y}" width="{W}" height="{INTERNET_H}" fill="#0c1118"/>')
-    a(f'<ellipse cx="{inet_cx}" cy="{inet_cy}" rx="90" ry="26" '      f'fill="none" stroke="{C["border"]}" stroke-width="1.5"/>')
-    a(f'<text x="{inet_cx}" y="{inet_cy+5}" text-anchor="middle" '      f'fill="{C["dim"]}" font-size="11" letter-spacing="3">INTERNET</text>')
-    for zone_cx in [saas_x + SAAS_W // 2, pub_x + PUB_W // 2]:
-        a(f'<line x1="{zone_cx}" y1="{top_y+top_h}" x2="{inet_cx}" y2="{inet_cy-26}" '          f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
-    a(f'<line x1="{inet_cx}" y1="{inet_cy+26}" x2="{inet_cx}" y2="{lab_y}" '      f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
+    a(f'<ellipse cx="{inet_cx}" cy="{inet_cy}" rx="90" ry="26" '
+      f'fill="none" stroke="{C["border"]}" stroke-width="1.5"/>')
+    a(f'<text x="{inet_cx}" y="{inet_cy+5}" text-anchor="middle" '
+      f'fill="{C["dim"]}" font-size="11" letter-spacing="3">INTERNET</text>')
+    for zcx in [saas_x + SAAS_W//2, pub_x + PUB_W//2]:
+        a(f'<line x1="{zcx}" y1="{top_y+top_h}" x2="{inet_cx}" y2="{inet_cy-26}" '
+          f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
+    a(f'<line x1="{inet_cx}" y1="{inet_cy+26}" x2="{inet_cx}" y2="{lab_y}" '
+      f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
 
-    # Home Lab zone
+    # ── Home Lab: balanced-tree layout ─────────────────────────────────────────
     render_zone_box(ZONE_PAD, lab_y, LAB_W, lab_h, C["lab"], "HOME LAB")
 
-    rendered_vms: set[str] = set()
+    if lab:
+        rows       = _lab_rows(lab)
+        rows_items = [_build_items(row) for row in rows]
+        zone_cx    = ZONE_PAD + LAB_W // 2
 
-    def render_lab_rows(nodes, zone_x, zone_w, card_y_base):
-        rows   = _lab_rows(nodes)
-        row_dy = 0
-        for row in rows:
-            row_y = card_y_base + row_dy
+        # Assign x positions (balanced tree)
+        name_cx = _assign_x_positions(rows_items, zone_cx)
 
-            # Group: cluster nodes vs solo nodes
-            cluster_groups: dict[int, list[dict]] = {}
-            solo_nodes: list[dict] = []
-            for node in row:
-                cid = node.get("cluster_id")
-                if cid and (node.get("cluster_primary") or node.get("cluster_sibling_of")):
-                    cluster_groups.setdefault(cid, []).append(node)
-                else:
-                    solo_nodes.append(node)
+        rendered_vms: set[str] = set()
+        row_y = lab_y + ZONE_HDR + 14
 
-            # Build render items with widths
-            items: list[dict] = []
-            for node in solo_nodes:
-                items.append({"type": "solo", "nodes": [node], "width": DW})
-            for cid, members in cluster_groups.items():
-                ms = sorted(members, key=lambda n: n["name"])
-                cw = len(ms) * DW + (len(ms)-1) * HGAP + CLUSTER_PAD * 2
-                items.append({"type": "cluster", "nodes": ms, "cid": cid, "width": cw})
+        for row_idx, items in enumerate(rows_items):
+            # Row height: cluster box top (CLUSTER_PAD+14 above cards) + DH + CLUSTER_PAD below
+            card_y    = row_y + CLUSTER_PAD + 14   # actual card top
+            box_top_y = row_y                        # cluster box top
+            row_has_vms = False
 
-            total_w = sum(it["width"] for it in items) + max(0, len(items)-1) * HGAP
-            cur_x   = zone_x + max(0, (zone_w - total_w) // 2)
-            row_vm_h = 0
+            for it in items:
+                iw  = _item_width(it)
+                icx = it.get("_cx", zone_cx)
+                ix  = icx - iw // 2               # left edge of item
 
-            for item in items:
-                if item["type"] == "solo":
-                    node = item["nodes"][0]
+                if it["type"] == "solo":
+                    node = it["nodes"][0]
                     bdr  = C["lab"] if node.get("status","active") == "active" else C["off"]
-                    ccx, ccy = render_card(cur_x, row_y + CLUSTER_PAD + 14,
-                                           node["name"], node.get("description",""), bdr)
+                    ccx, ccy = render_card(ix, card_y, node["name"],
+                                           node.get("description",""), bdr)
                     pos_index[node["name"]] = (ccx, ccy)
+                    # Solo VMs
                     vms = [v for v in node.get("vms",[]) if v["name"] not in rendered_vms]
                     if vms:
                         vm_tw = len(vms)*VM_W + (len(vms)-1)*VM_HGAP
                         vm_x0 = ccx - vm_tw // 2
-                        vm_y  = row_y + CLUSTER_PAD + 14 + DH + 16
+                        vm_y  = card_y + DH + 16
+                        row_has_vms = True
+                        conn_lines.append(
+                            f'<line x1="{ccx}" y1="{card_y+DH}" '
+                            f'x2="{ccx}" y2="{vm_y}" '
+                            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
                         for k, vm in enumerate(vms):
-                            vx = vm_x0 + k*(VM_W+VM_HGAP)
+                            vx  = vm_x0 + k*(VM_W+VM_HGAP)
+                            vcx = vx + VM_W//2
                             conn_lines.append(
-                                f'<line x1="{ccx}" y1="{row_y+CLUSTER_PAD+14+DH}" '                                f'x2="{vx+VM_W//2}" y2="{vm_y}" '                                f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+                                f'<line x1="{ccx}" y1="{vm_y}" '
+                                f'x2="{vcx}" y2="{vm_y}" '
+                                f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
                             render_vm_card(vx, vm_y, vm)
                             rendered_vms.add(vm["name"])
-                        row_vm_h = max(row_vm_h, VM_H + 16)
 
-                else:
-                    ms   = item["nodes"]
-                    cid  = item["cid"]
+                else:  # cluster box
+                    ms   = it["nodes"]
+                    cid  = it["cid"]
                     cn   = ms[0].get("cluster_name", f"cluster-{cid}")
-                    bx   = cur_x
-                    bw   = item["width"]
-                    bh   = DH + CLUSTER_PAD * 2 + 14
-                    box_cx = bx + bw // 2
+                    bw   = iw
+                    bh   = CLUSTER_PAD*2 + 14 + DH
+                    bx   = icx - bw // 2
 
-                    # Cluster box
-                    a(f'<rect x="{bx}" y="{row_y}" width="{bw}" height="{bh}" rx="3" '                      f'fill="none" stroke="{C["vm_bdr"]}" stroke-width="1" '                      f'stroke-dasharray="3,3"/>')
-                    a(f'<text x="{box_cx}" y="{row_y+10}" text-anchor="middle" '                      f'fill="{C["dim"]}" font-size="7" letter-spacing="1">{_xml(cn)}</text>')
+                    # Draw cluster box
+                    a(f'<rect x="{bx}" y="{box_top_y}" width="{bw}" height="{bh}" rx="3" '
+                      f'fill="none" stroke="{C["vm_bdr"]}" stroke-width="1" '
+                      f'stroke-dasharray="3,3"/>')
+                    # Cluster label — same font as card names but smaller, dim color
+                    a(f'<text x="{icx}" y="{box_top_y+10}" text-anchor="middle" '
+                      f'fill="{C["dim"]}" font-size="7" letter-spacing="1">'
+                      f'{_xml(cn)}</text>')
 
-                    inner_xs = _row_xs(len(ms), bx+CLUSTER_PAD, bw-CLUSTER_PAD*2, DW, HGAP)
+                    inner_xs = []
+                    total_inner = len(ms)*DW + (len(ms)-1)*HGAP
+                    xi = icx - total_inner//2
+                    for _ in ms:
+                        inner_xs.append(xi)
+                        xi += DW + HGAP
+
                     for j2, node in enumerate(ms):
-                        bdr = C["lab"] if node.get("status","active") == "active" else C["off"]
-                        ccx, ccy = render_card(inner_xs[j2], row_y+14,
-                                               node["name"], node.get("description",""), bdr)
+                        bdr2 = C["lab"] if node.get("status","active") == "active" else C["off"]
+                        ccx, ccy = render_card(inner_xs[j2], card_y,
+                                               node["name"], node.get("description",""), bdr2)
                         pos_index[node["name"]] = (ccx, ccy)
 
+                    # Cluster VMs — one shared row centred under box
                     primary = next((n for n in ms if n.get("cluster_primary")), ms[0])
                     vms = [v for v in primary.get("vms",[]) if v["name"] not in rendered_vms]
+                    box_bottom = box_top_y + bh
                     if vms:
-                        vm_tw  = len(vms)*VM_W + (len(vms)-1)*VM_HGAP
-                        vm_x0  = box_cx - vm_tw // 2
-                        vm_y   = row_y + bh + 16
-                        box_by = row_y + bh
+                        vm_tw = len(vms)*VM_W + (len(vms)-1)*VM_HGAP
+                        vm_x0 = icx - vm_tw//2
+                        vm_y  = box_bottom + 16
+                        row_has_vms = True
                         conn_lines.append(
-                            f'<line x1="{box_cx}" y1="{box_by}" '                            f'x2="{box_cx}" y2="{vm_y}" '                            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+                            f'<line x1="{icx}" y1="{box_bottom}" '
+                            f'x2="{icx}" y2="{vm_y}" '
+                            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
                         for k, vm in enumerate(vms):
-                            vcx = vm_x0 + k*(VM_W+VM_HGAP) + VM_W//2
+                            vx  = vm_x0 + k*(VM_W+VM_HGAP)
+                            vcx = vx + VM_W//2
                             conn_lines.append(
-                                f'<line x1="{box_cx}" y1="{vm_y}" '                                f'x2="{vcx}" y2="{vm_y}" '                                f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
-                            render_vm_card(vm_x0+k*(VM_W+VM_HGAP), vm_y, vm)
+                                f'<line x1="{icx}" y1="{vm_y}" '
+                                f'x2="{vcx}" y2="{vm_y}" '
+                                f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+                            render_vm_card(vx, vm_y, vm)
                             rendered_vms.add(vm["name"])
-                        row_vm_h = max(row_vm_h, bh + VM_H + 16)
 
-                cur_x += item["width"] + HGAP
+            row_y += CLUSTER_PAD*2 + 14 + DH + (VM_H + 24 if row_has_vms else 0) + ROW_GAP
 
-            row_dy += CLUSTER_PAD*2 + 14 + DH + (row_vm_h + VGAP if row_vm_h else 0) + VGAP*2
-
-    render_lab_rows(lab, ZONE_PAD, LAB_W, lab_y + ZONE_HDR + 8)
-
-    # Physical cables
+    # ── Physical cables ────────────────────────────────────────────────────────
     for (na, nb_) in cables:
         if na in pos_index and nb_ in pos_index:
             ax, ay = pos_index[na]
-            bx, by = pos_index[nb_]
+            bx2, by2 = pos_index[nb_]
             conn_lines.append(
-                f'<line x1="{ax}" y1="{ay}" x2="{bx}" y2="{by}" '                f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.7"/>')
+                f'<line x1="{ax}" y1="{ay}" x2="{bx2}" y2="{by2}" '
+                f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.7"/>')
 
-    # VPN tunnels
+    # ── VPN tunnels ────────────────────────────────────────────────────────────
     for (na, nb_, label, style) in tunnels:
         if na in pos_index and nb_ in pos_index:
-            ax, ay = pos_index[na]
-            bx, by = pos_index[nb_]
+            ax, ay  = pos_index[na]
+            bx2, by2 = pos_index[nb_]
             color = C["acc"] if style == "wireguard" else C["dim"]
             dash  = "6,4"    if style == "wireguard" else "3,4"
-            mx, my = (ax+bx)//2, (ay+by)//2
+            mx, my = (ax+bx2)//2, (ay+by2)//2
             conn_lines.append(
-                f'<line x1="{ax}" y1="{ay}" x2="{bx}" y2="{by}" '                f'stroke="{color}" stroke-width="1.5" stroke-dasharray="{dash}" opacity="0.9"/>')
+                f'<line x1="{ax}" y1="{ay}" x2="{bx2}" y2="{by2}" '
+                f'stroke="{color}" stroke-width="1.5" '
+                f'stroke-dasharray="{dash}" opacity="0.9"/>')
             lk = "[WG] " if style == "wireguard" else ""
             conn_lines.append(
-                f'<rect x="{mx-42}" y="{my-9}" width="84" height="16" rx="2" '                f'fill="{C["bg"]}" stroke="{color}" stroke-width="1"/>')
+                f'<rect x="{mx-42}" y="{my-9}" width="84" height="16" rx="2" '
+                f'fill="{C["bg"]}" stroke="{color}" stroke-width="1"/>')
             conn_lines.append(
-                f'<text x="{mx}" y="{my+3}" text-anchor="middle" '                f'fill="{color}" font-size="7" letter-spacing="0.5">{lk}{_xml(label)}</text>')
+                f'<text x="{mx}" y="{my+3}" text-anchor="middle" '
+                f'fill="{color}" font-size="7" letter-spacing="0.5">'
+                f'{lk}{_xml(label)}</text>')
 
     if conn_lines:
         svg.insert(2, "\n".join(conn_lines))
@@ -739,9 +932,6 @@ def build_svg(
     a('</svg>')
     return "\n".join(svg)
 
-
-#  Main
-# ══════════════════════════════════════════════════════════════════════════════
 
 def main() -> None:
     pub, lab, cables, tunnels, raw_count = fetch_all()
@@ -795,4 +985,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-  
