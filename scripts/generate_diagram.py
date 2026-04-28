@@ -255,7 +255,19 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
     print(f"[INFO] Classified → public={len(pub_nodes)}, homelab={len(lab_nodes_raw)}")
 
     # ── Step 6: Attach VMs to clusters, shared across all nodes in cluster ────
-    # cluster_id → { name, vms[] }
+    # Fetch cluster details (name + description) from Netbox
+    print("[INFO] Fetching /virtualization/clusters/ …")
+    raw_clusters = nb_get("/virtualization/clusters/")
+    cluster_details: dict[int, dict] = {}
+    for cl in raw_clusters:
+        cid = cl.get("id")
+        if cid:
+            cluster_details[cid] = {
+                "name":        cl.get("name") or f"cluster-{cid}",
+                "description": cl.get("description") or "",
+            }
+
+    # cluster_id → { name, description, vms[] }
     cluster_info: dict[int, dict] = {}
     for vm in raw_all_vm:
         cid   = (vm.get("cluster") or {}).get("id")
@@ -264,7 +276,12 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
             vm_tags = _tags(vm)
             if TAG_EXCLUDE not in vm_tags:
                 if cid not in cluster_info:
-                    cluster_info[cid] = {"name": cname, "vms": []}
+                    det = cluster_details.get(cid, {})
+                    cluster_info[cid] = {
+                        "name":        det.get("name") or cname,
+                        "description": det.get("description") or "",
+                        "vms":         [],
+                    }
                 cluster_info[cid]["vms"].append({
                     "name":        vm.get("name") or "unnamed-vm",
                     "description": vm.get("description") or _str(vm.get("role"), "name"),
@@ -289,8 +306,9 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
         primary = members_sorted[0]
         ci = cluster_info.get(cid, {})
         if not primary["no_vms"]:
-            primary["vms"]          = ci.get("vms", [])
-            primary["cluster_name"] = ci.get("name", "")
+            primary["vms"]             = ci.get("vms", [])
+            primary["cluster_name"]    = ci.get("name", "")
+            primary["cluster_desc"]    = ci.get("description", "")
             primary["cluster_primary"] = True
         for sibling in members_sorted[1:]:
             sibling["cluster_sibling_of"] = primary["name"]
@@ -783,7 +801,8 @@ def build_svg(
     # Store Internet band elements in a separate list – inserted before conn_lines
     inet_elems: list[str] = []
     inet_elems.append(
-        f'<rect x="0" y="{inet_y}" width="{W}" height="{INTERNET_H}" fill="#0c1118"/>')
+        f'<rect x="0" y="{inet_y}" width="{W}" height="{INTERNET_H}" '
+        f'fill="#0c1118" opacity="0.85"/>')
     inet_elems.append(
         f'<ellipse cx="{inet_cx}" cy="{inet_cy}" rx="90" ry="26" '
         f'fill="none" stroke="{C["border"]}" stroke-width="1.5"/>')
@@ -861,19 +880,29 @@ def build_svg(
                 else:  # cluster box
                     ms   = it["nodes"]
                     cid  = it["cid"]
-                    cn   = ms[0].get("cluster_name", f"cluster-{cid}")
+                    primary_node = next((n for n in ms if n.get("cluster_primary")), ms[0])
+                    cn   = primary_node.get("cluster_name", f"cluster-{cid}")
+                    cdesc = primary_node.get("cluster_desc", "")
                     bw   = iw
-                    bh   = CLUSTER_PAD*2 + 14 + DH
+                    # Box header height: name line + optional desc line
+                    hdr_h = 13 + (11 if cdesc else 0)
+                    bh   = CLUSTER_PAD + hdr_h + 6 + DH + CLUSTER_PAD
                     bx   = icx - bw // 2
 
-                    # Cluster box — green border, slightly thicker
+                    # Cluster box — green border
                     a(f'<rect x="{bx}" y="{box_top_y}" width="{bw}" height="{bh}" rx="3" '
                       f'fill="none" stroke="{C["lab"]}" stroke-width="1.5" '
                       f'stroke-dasharray="4,3"/>')
-                    # Cluster label — bold, head colour, same size as card names
-                    a(f'<text x="{icx}" y="{box_top_y+11}" text-anchor="middle" '
-                      f'fill="{C["head"]}" font-size="8" font-weight="600" letter-spacing="0.5">'
+                    # Cluster name — bold, head colour
+                    a(f'<text x="{icx}" y="{box_top_y + CLUSTER_PAD + 10}" '
+                      f'text-anchor="middle" fill="{C["head"]}" '
+                      f'font-size="8" font-weight="600" letter-spacing="0.5">'
                       f'{_xml(cn)}</text>')
+                    # Cluster description — dim, smaller
+                    if cdesc:
+                        a(f'<text x="{icx}" y="{box_top_y + CLUSTER_PAD + 21}" '
+                          f'text-anchor="middle" fill="{C["dim"]}" font-size="6.5">'
+                          f'{_xml(cdesc[:40])}</text>')
 
                     total_inner = len(ms)*DW + (len(ms)-1)*HGAP
                     xi = icx - total_inner//2
@@ -882,10 +911,11 @@ def build_svg(
                         inner_xs.append(xi)
                         xi += DW + HGAP
 
+                    # Cards sit below the cluster header
+                    inner_card_y = box_top_y + CLUSTER_PAD + hdr_h + 6
                     for j2, node in enumerate(ms):
                         bdr2 = C["lab"] if node.get("status","active") == "active" else C["off"]
-                        print(f"[DEBUG] cluster member '{node['name']}' description='{node.get('description','')}'")
-                        ccx, ccy = render_card(inner_xs[j2], card_y,
+                        ccx, ccy = render_card(inner_xs[j2], inner_card_y,
                                                node["name"], node.get("description",""), bdr2)
                         pos_index[node["name"]] = (ccx, ccy)
 
@@ -897,16 +927,13 @@ def build_svg(
                         vm_x0 = icx - vm_tw//2
                         vm_y  = box_bottom + 16
                         row_has_vms = True
-                        conn_lines.append(
-                            f'<line x1="{icx}" y1="{box_bottom}" '
-                            f'x2="{icx}" y2="{vm_y}" '
-                            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+                        # Each VM gets its own line from vm-top-center → box-bottom-center
                         for k, vm in enumerate(vms):
                             vx  = vm_x0 + k*(VM_W+VM_HGAP)
                             vcx = vx + VM_W//2
                             conn_lines.append(
-                                f'<line x1="{icx}" y1="{vm_y}" '
-                                f'x2="{vcx}" y2="{vm_y}" '
+                                f'<line x1="{vcx}" y1="{vm_y}" '
+                                f'x2="{icx}" y2="{box_bottom}" '
                                 f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
                             render_vm_card(vx, vm_y, vm)
                             rendered_vms.add(vm["name"])
