@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-04-28 21:39 UTC",
+  "generated_at": "2026-05-04 19:27 UTC",
   "source": "netbox",
   "saas_count": 3,
-  "device_count": 19,
+  "device_count": 21,
   "pub_nodes": 2,
-  "lab_nodes": 8,
+  "lab_nodes": 9,
   "vm_count": 3,
-  "cable_count": 7,
+  "cable_count": 8,
   "tunnel_count": 1,
   "tunnel_source": "netbox",
   "filter_tags": {
