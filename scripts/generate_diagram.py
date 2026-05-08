@@ -503,15 +503,6 @@ def _row_xs(count: int, zone_x: int, zone_w: int, cw: int, gap: int) -> list[int
     x0 = zone_x + max(0, (zone_w - total) // 2)
     return [x0 + i * (cw + gap) for i in range(count)]
 
-def _lab_rows(nodes: list[dict]) -> list[list[dict]]:
-    """Group lab nodes by topo_level into ordered rows."""
-    from collections import OrderedDict
-    rows: dict[int, list[dict]] = {}
-    for n in nodes:
-        lv = n.get("topo_level", 0)
-        rows.setdefault(lv, []).append(n)
-    return [rows[lv] for lv in sorted(rows)]
-
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  SVG constants (layout)
@@ -532,13 +523,51 @@ ROW_GAP       = 48          # vertical gap between topo rows
 #  Balanced-tree layout helpers
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _lab_rows(nodes: list[dict]) -> list[list[dict]]:
+def _lab_rows(nodes: list[dict], zone_w: int = 1044) -> list[list[dict]]:
+    """
+    Group lab nodes by topo_level into ordered rows.
+    If a row's total item width exceeds zone_w, split it into
+    multiple sub-rows (each still rendered at a distinct y).
+    Each sub-row carries the same topo_level so parent-child
+    connectors still work.
+    """
     from collections import OrderedDict
-    rows: dict[int, list[dict]] = {}
+    level_nodes: dict[int, list[dict]] = {}
     for n in nodes:
         lv = n.get("topo_level", 0)
-        rows.setdefault(lv, []).append(n)
-    return [rows[lv] for lv in sorted(rows)]
+        level_nodes.setdefault(lv, []).append(n)
+
+    result: list[list[dict]] = []
+    max_w = zone_w - 4 * HGAP   # leave comfortable margin
+
+    for lv in sorted(level_nodes):
+        row = level_nodes[lv]
+        items = _build_items(row)
+        total_w = sum(_item_width(it) for it in items) + max(0, len(items)-1)*HGAP
+
+        if total_w <= max_w:
+            result.append(row)
+        else:
+            # Split items into sub-rows that fit within max_w
+            sub: list[dict] = []
+            sub_w = 0
+            for it in items:
+                iw = _item_width(it)
+                gap = HGAP if sub else 0
+                if sub and sub_w + gap + iw > max_w:
+                    # Flush current sub-row
+                    sub_nodes = [n for it2 in sub for n in it2["nodes"]]
+                    result.append(sub_nodes)
+                    sub = [it]
+                    sub_w = iw
+                else:
+                    sub.append(it)
+                    sub_w += gap + iw
+            if sub:
+                sub_nodes = [n for it2 in sub for n in it2["nodes"]]
+                result.append(sub_nodes)
+
+    return result
 
 
 def _item_width(item: dict) -> int:
@@ -573,37 +602,33 @@ def _build_items(row: list[dict]) -> list[dict]:
 def _assign_x_positions(
     rows_items: list[list[dict]],
     zone_cx: int,
+    zone_x: int = 28,
+    zone_w: int = 1044,
 ) -> dict[str, int]:
     """
-    Balanced-tree horizontal layout.
-    Root row centred on zone_cx.
-    Each subsequent row: children centred under their parent.
-    Returns mapping: node_name → centre_x.
+    Balanced-tree horizontal layout with zone-boundary clamping.
+    _lab_rows already guarantees each row fits within zone_w.
     """
-    name_cx: dict[str, int] = {}  # node_name → centre_x
+    name_cx: dict[str, int] = {}
 
-    # Build parent lookup from topo adjacency (parent = node in level above
-    # that is connected via cable). We use the adj graph stored on items.
-    # Simpler approach: for each level, collect items and their parents from
-    # the level above using the cable adjacency passed in via node["_parent"].
-    # (We'll set _parent during _topo_sort.)
+    def _layout_row(items: list[dict], centre_x: int) -> None:
+        total_w = sum(_item_width(it) for it in items) + max(0, len(items)-1)*HGAP
+        cur_x   = centre_x - total_w // 2
+        # Clamp: never go outside zone boundaries
+        cur_x   = max(zone_x + HGAP, min(cur_x, zone_x + zone_w - total_w - HGAP))
+        for it in items:
+            iw  = _item_width(it)
+            icx = cur_x + iw // 2
+            for node in it["nodes"]:
+                name_cx[node["name"]] = icx
+            it["_cx"] = icx
+            it["_w"]  = iw
+            cur_x += iw + HGAP
 
     for row_idx, items in enumerate(rows_items):
         if row_idx == 0:
-            # Root row: centre on zone_cx
-            total_w = sum(_item_width(it) for it in items) + (len(items)-1)*HGAP
-            cur_x   = zone_cx - total_w // 2
-            for it in items:
-                iw = _item_width(it)
-                icx = cur_x + iw // 2
-                for node in it["nodes"]:
-                    name_cx[node["name"]] = icx
-                it["_cx"] = icx
-                it["_w"]  = iw
-                cur_x += iw + HGAP
+            _layout_row(items, zone_cx)
         else:
-            # Group items by their parent item's centre_x
-            # parent_cx → [items]
             from collections import defaultdict as _dd
             parent_groups: dict[int, list[dict]] = _dd(list)
             orphans: list[dict] = []
@@ -615,32 +640,11 @@ def _assign_x_positions(
                 else:
                     orphans.append(it)
 
-            # Layout each parent group centred under its parent
             for pcx in sorted(parent_groups):
-                group = parent_groups[pcx]
-                group_w = sum(_item_width(it) for it in group) + (len(group)-1)*HGAP
-                cur_x   = pcx - group_w // 2
-                for it in group:
-                    iw  = _item_width(it)
-                    icx = cur_x + iw // 2
-                    for node in it["nodes"]:
-                        name_cx[node["name"]] = icx
-                    it["_cx"] = icx
-                    it["_w"]  = iw
-                    cur_x += iw + HGAP
+                _layout_row(parent_groups[pcx], pcx)
 
-            # Orphans centred on zone_cx
             if orphans:
-                ow = sum(_item_width(it) for it in orphans) + (len(orphans)-1)*HGAP
-                cur_x = zone_cx - ow // 2
-                for it in orphans:
-                    iw  = _item_width(it)
-                    icx = cur_x + iw // 2
-                    for node in it["nodes"]:
-                        name_cx[node["name"]] = icx
-                    it["_cx"] = icx
-                    it["_w"]  = iw
-                    cur_x += iw + HGAP
+                _layout_row(orphans, zone_cx)
 
     return name_cx
 
@@ -649,7 +653,7 @@ def _zone_h_lab(nodes: list[dict]) -> int:
     """Estimate home lab zone height."""
     if not nodes:
         return DH + ZONE_HDR + 20
-    rows = _lab_rows(nodes)
+    rows = _lab_rows(nodes, zone_w=1044)
     total = ZONE_HDR + 12
     for row in rows:
         items = _build_items(row)
@@ -822,11 +826,12 @@ def build_svg(
     render_zone_box(ZONE_PAD, lab_y, LAB_W, lab_h, C["lab"], "HOME LAB")
 
     if lab:
-        rows       = _lab_rows(lab)
+        rows       = _lab_rows(lab, zone_w=LAB_W)
         rows_items = [_build_items(row) for row in rows]
         zone_cx    = ZONE_PAD + LAB_W // 2
 
-        name_cx = _assign_x_positions(rows_items, zone_cx)
+        name_cx = _assign_x_positions(rows_items, zone_cx,
+                                       zone_x=ZONE_PAD, zone_w=LAB_W)
 
         rendered_vms: set[str] = set()
         row_y = lab_y + ZONE_HDR + 14
@@ -946,8 +951,15 @@ def build_svg(
         if na in pos_index and nb_ in pos_index:
             ax, ay = pos_index[na]
             bx2, by2 = pos_index[nb_]
+            # Edge-to-edge: upper card bottom → lower card top
+            if ay < by2:
+                ay_e, by2_e = ay + DH//2, by2 - DH//2
+            elif ay > by2:
+                ay_e, by2_e = ay - DH//2, by2 + DH//2
+            else:
+                ay_e, by2_e = ay, by2   # same row, side connection
             conn_lines.append(
-                f'<line x1="{ax}" y1="{ay}" x2="{bx2}" y2="{by2}" '
+                f'<line x1="{ax}" y1="{ay_e}" x2="{bx2}" y2="{by2_e}" '
                 f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.7"/>')
 
     # ── VPN tunnels ────────────────────────────────────────────────────────────
@@ -958,9 +970,18 @@ def build_svg(
             bx2, by2 = pos_index[nb_]
             color = C["acc"] if style == "wireguard" else C["dim"]
             dash  = "6,4"    if style == "wireguard" else "3,4"
-            mx, my = (ax+bx2)//2, (ay+by2)//2
+            # Connect card edges, not centers:
+            # whichever endpoint is higher (smaller y) → use its bottom edge
+            # whichever endpoint is lower (larger y)  → use its top edge
+            if ay < by2:
+                ay_edge  = ay  + DH // 2   # bottom of upper card
+                by2_edge = by2 - DH // 2   # top of lower card
+            else:
+                ay_edge  = ay  - DH // 2   # top of lower card (na is below)
+                by2_edge = by2 + DH // 2   # bottom of upper card
+            mx, my = (ax+bx2)//2, (ay_edge+by2_edge)//2
             tunnel_elems.append(
-                f'<line x1="{ax}" y1="{ay}" x2="{bx2}" y2="{by2}" '
+                f'<line x1="{ax}" y1="{ay_edge}" x2="{bx2}" y2="{by2_edge}" '
                 f'stroke="{color}" stroke-width="2.5" '
                 f'stroke-dasharray="{dash}" opacity="1"/>')
             lk = "[WG] " if style == "wireguard" else ""
