@@ -982,20 +982,25 @@ def build_svg(
                 f'stroke="{color}" stroke-width="2.5" '
                 f'stroke-dasharray="{dash}" opacity="1"/>')
             lk = "[WG] " if style == "wireguard" else ""
-            # Badge: taller if description present
+            label_text = f"{lk}{label}"
+            # Estimate text width (approx 6px per char at font-size 7)
+            label_w = len(label_text) * 6 + 16
+            desc_w  = len(tdesc) * 5 + 16 if tdesc else 0
+            badge_w = max(84, label_w, desc_w)
             badge_h = 27 if tdesc else 16
             tunnel_elems.append(
-                f'<rect x="{mx-46}" y="{my - badge_h//2}" width="92" height="{badge_h}" rx="2" '
+                f'<rect x="{mx - badge_w//2}" y="{my - badge_h//2}" '
+                f'width="{badge_w}" height="{badge_h}" rx="2" '
                 f'fill="{C["bg"]}" stroke="{color}" stroke-width="1"/>')
             tunnel_elems.append(
                 f'<text x="{mx}" y="{my - badge_h//2 + 11}" text-anchor="middle" '
                 f'fill="{color}" font-size="7" font-weight="600" letter-spacing="0.5">'
-                f'{lk}{_xml(label)}</text>')
+                f'{_xml(label_text)}</text>')
             if tdesc:
                 tunnel_elems.append(
                     f'<text x="{mx}" y="{my - badge_h//2 + 22}" text-anchor="middle" '
                     f'fill="{C["dim"]}" font-size="6">'
-                    f'{_xml(tdesc[:36])}</text>')
+                    f'{_xml(tdesc[:50])}</text>')
 
     # ── Final SVG assembly (painter's model — order = z-order) ────────────────
     # Rebuild svg with correct layer order:
