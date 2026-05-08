@@ -95,6 +95,7 @@
 <text x="926" y="985" text-anchor="middle" fill="#5a7a94" font-size="7">Cisco Switch for Webex Calling</text>
 <text x="926" y="996" text-anchor="middle" fill="#5a7a94" font-size="7">Endpoints</text>
 <line x1="721" y1="134" x2="550" y2="412" stroke="#00d4ff" stroke-width="2.5" stroke-dasharray="6,4" opacity="1"/>
-<rect x="593" y="264" width="84" height="16" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
-<text x="635" y="276" text-anchor="middle" fill="#00d4ff" font-size="7" font-weight="600" letter-spacing="0.5">[WG] vps-edge01</text>
+<rect x="589" y="260" width="92" height="27" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
+<text x="635" y="271" text-anchor="middle" fill="#00d4ff" font-size="7" font-weight="600" letter-spacing="0.5">[WG] vps-edge01</text>
+<text x="635" y="282" text-anchor="middle" fill="#5a7a94" font-size="6">Remote Access to internal Webservice</text>
 </svg>
