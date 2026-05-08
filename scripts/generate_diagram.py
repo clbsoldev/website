@@ -91,8 +91,8 @@ HOMELAB_ROOT = "UXG-Fiber"
 # At runtime these are fetched from Netbox /vpn/tunnels/ automatically.
 # Only used when Netbox returns no tunnels or is unreachable.
 # Format: (device_name_A, device_name_B, label, style)
-LOGICAL_TUNNELS_FALLBACK: list[tuple[str, str, str, str]] = [
-    ("VPS nginx", "Unifi Gateway", "WireGuard VPN", "wireguard"),
+LOGICAL_TUNNELS_FALLBACK: list[tuple[str, str, str, str, str]] = [
+    ("VPS nginx", "Unifi Gateway", "WireGuard VPN", "wireguard", ""),
 ]
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -366,21 +366,21 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
             label = t.get("name") or "VPN Tunnel"
             encap = _str(t.get("encapsulation"), "value").lower()
             style = "wireguard" if "wireguard" in encap else "logical"
+            tdesc = t.get("description") or ""
             dev_names: list[str] = []
             for term in terms_by_tunnel.get(tid, []):
                 obj  = term.get("termination") or {}
-                # Device interface: obj["device"]["name"]
                 dev  = obj.get("device") or {}
                 name = dev.get("name") or ""
-                # VM interface: obj["virtual_machine"]["name"]
                 if not name:
                     vm_ref = obj.get("virtual_machine") or {}
                     name   = vm_ref.get("name") or ""
                 if name and name not in dev_names:
                     dev_names.append(name)
             if len(dev_names) >= 2:
-                tunnels.append((dev_names[0], dev_names[1], label, style))
-                print(f"  -> '{label}' ({style}): {dev_names[0]} <-> {dev_names[1]}")
+                tunnels.append((dev_names[0], dev_names[1], label, style, tdesc))
+                print(f"  -> '{label}' ({style}): {dev_names[0]} <-> {dev_names[1]}"
+                      f"{' | ' + tdesc if tdesc else ''}")
             else:
                 print(f"  [WARN] '{label}': {len(dev_names)} endpoint(s) – raw terminations: "
                       f"{[t.get('termination') for t in terms_by_tunnel.get(tid, [])]}")
@@ -964,34 +964,38 @@ def build_svg(
 
     # ── VPN tunnels ────────────────────────────────────────────────────────────
     tunnel_elems: list[str] = []
-    for (na, nb_, label, style) in tunnels:
+    for (na, nb_, label, style, tdesc) in tunnels:
         if na in pos_index and nb_ in pos_index:
             ax, ay   = pos_index[na]
             bx2, by2 = pos_index[nb_]
             color = C["acc"] if style == "wireguard" else C["dim"]
             dash  = "6,4"    if style == "wireguard" else "3,4"
-            # Connect card edges, not centers:
-            # whichever endpoint is higher (smaller y) → use its bottom edge
-            # whichever endpoint is lower (larger y)  → use its top edge
             if ay < by2:
-                ay_edge  = ay  + DH // 2   # bottom of upper card
-                by2_edge = by2 - DH // 2   # top of lower card
+                ay_edge  = ay  + DH // 2
+                by2_edge = by2 - DH // 2
             else:
-                ay_edge  = ay  - DH // 2   # top of lower card (na is below)
-                by2_edge = by2 + DH // 2   # bottom of upper card
+                ay_edge  = ay  - DH // 2
+                by2_edge = by2 + DH // 2
             mx, my = (ax+bx2)//2, (ay_edge+by2_edge)//2
             tunnel_elems.append(
                 f'<line x1="{ax}" y1="{ay_edge}" x2="{bx2}" y2="{by2_edge}" '
                 f'stroke="{color}" stroke-width="2.5" '
                 f'stroke-dasharray="{dash}" opacity="1"/>')
             lk = "[WG] " if style == "wireguard" else ""
+            # Badge: taller if description present
+            badge_h = 27 if tdesc else 16
             tunnel_elems.append(
-                f'<rect x="{mx-42}" y="{my-9}" width="84" height="16" rx="2" '
+                f'<rect x="{mx-46}" y="{my - badge_h//2}" width="92" height="{badge_h}" rx="2" '
                 f'fill="{C["bg"]}" stroke="{color}" stroke-width="1"/>')
             tunnel_elems.append(
-                f'<text x="{mx}" y="{my+3}" text-anchor="middle" '
+                f'<text x="{mx}" y="{my - badge_h//2 + 11}" text-anchor="middle" '
                 f'fill="{color}" font-size="7" font-weight="600" letter-spacing="0.5">'
                 f'{lk}{_xml(label)}</text>')
+            if tdesc:
+                tunnel_elems.append(
+                    f'<text x="{mx}" y="{my - badge_h//2 + 22}" text-anchor="middle" '
+                    f'fill="{C["dim"]}" font-size="6">'
+                    f'{_xml(tdesc[:36])}</text>')
 
     # ── Final SVG assembly (painter's model — order = z-order) ────────────────
     # Rebuild svg with correct layer order:
