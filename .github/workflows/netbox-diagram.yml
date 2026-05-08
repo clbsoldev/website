@@ -1,9 +1,17 @@
 name: Netbox → Network Diagram
 
 on:
+  # Run every Monday 18:00 UTC
   schedule:
-    - cron: '0 18 * * 1'   # Every Monday 18:00 UTC
-  workflow_dispatch:        # Manual trigger from Actions UI
+    - cron: '0 18 * * 1'
+ 
+  # Trigger on push when the diagram script changes
+  push:
+    paths:
+      - 'scripts/generate_diagram.py'
+ 
+  # Manual trigger from Actions UI
+  workflow_dispatch:
 
 permissions:
   contents: write           # Required to commit diagram back to repo
