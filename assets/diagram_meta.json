@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-11 19:44 UTC",
+  "generated_at": "2026-05-18 19:43 UTC",
   "source": "netbox",
   "saas_count": 3,
-  "device_count": 24,
+  "device_count": 25,
   "pub_nodes": 2,
   "lab_nodes": 11,
   "vm_count": 3,
