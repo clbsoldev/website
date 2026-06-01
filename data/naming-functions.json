@@ -8,5 +8,6 @@
   { "code": "ic",    "function": "Intercom",                "examples": "IP intercom device (2N, Aiphone, …) · used within pzs role context" },
   { "code": "mon",   "function": "Monitoring",              "examples": "Nagios, Zabbix or similar monitoring host" },
   { "code": "edge",  "function": "Edge Device",             "examples": "Reverse proxy, API gateway, border device" },
+  { "code": "env",  "function": "Environment Sensor",      "examples": "Environment Sensors for Rack Health" },
   { "code": "mgmt",  "function": "Management",              "examples": "Jump host, Ansible control node, management proxy" }
 ]
