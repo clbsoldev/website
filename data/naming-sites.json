@@ -1,0 +1,12 @@
+[
+  {
+    "prefix": "vps",
+    "meaning": "Virtual Private Server",
+    "notes": "Generic prefix for hosted VPS — hoster-independent"
+  },
+  {
+    "prefix": "hau",
+    "meaning": "Steinau an der Straße",
+    "notes": "3-letter UN/LOCODE · DE HAU · primary home lab site"
+  }
+]

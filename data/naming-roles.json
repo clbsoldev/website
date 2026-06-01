@@ -1,0 +1,6 @@
+[
+  { "role": "pzs", "context": "Physical Access Systems", "example": "hau-ctl01.pzs.clb-sol.dev" },
+  { "role": "wxc", "context": "Webex Calling",           "example": "hau-lgw01.wxc.clb-sol.dev" },
+  { "role": "iot", "context": "IoT Devices",             "example": "hau-env01.iot.clb-sol.dev" },
+  { "role": "pve", "context": "Proxmox VE",              "example": "hau-hyp01.pve.clb-sol.dev" }
+]

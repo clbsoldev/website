@@ -1,0 +1,12 @@
+[
+  { "code": "hyp",   "function": "Hypervisor",              "examples": "Proxmox VE node, ESXi host" },
+  { "code": "hypcl", "function": "Hypervisor Cluster",      "examples": "Proxmox cluster object (non-physical, used in Netbox)" },
+  { "code": "sw2",   "function": "Layer 2 Switch",          "examples": "Managed access or distribution switch" },
+  { "code": "lgw",   "function": "Local Gateway",           "examples": "Webex Calling Local Gateway (SIP trunk)" },
+  { "code": "sgw",   "function": "Survivability Gateway",   "examples": "Webex Calling Survivability Gateway" },
+  { "code": "ctl",   "function": "Controller",              "examples": "Access controller, network controller" },
+  { "code": "ic",    "function": "Intercom",                "examples": "IP intercom device (2N, Aiphone, …) · used within pzs role context" },
+  { "code": "mon",   "function": "Monitoring",              "examples": "Nagios, Zabbix or similar monitoring host" },
+  { "code": "edge",  "function": "Edge Device",             "examples": "Reverse proxy, API gateway, border device" },
+  { "code": "mgmt",  "function": "Management",              "examples": "Jump host, Ansible control node, management proxy" }
+]

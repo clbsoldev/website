@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Naming Convention · clbsoldev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <script src="assets/components.js" defer></script>
+</head>
+<body>
+
+<site-nav active="naming"></site-nav>
+
+<div class="page">
+
+  <div class="eyebrow fade-up">Standards &amp; Conventions</div>
+  <h1 class="fade-up delay-1">Host <span class="accent">Naming</span> Convention</h1>
+  <p class="hero-desc fade-up delay-2">
+    Consistent hostname schema used across all lab infrastructure —
+    VPS hosts, physical devices, VMs and LXC containers.
+  </p>
+
+  <!-- Schema -->
+  <div class="schema">
+    <div class="schema-line">
+      <span class="seg">xxx</span><span class="sep">-</span><span class="seg">yyy</span><span class="sep">&lt;</span><span class="seg">nn</span><span class="sep">&gt;</span><span class="opt">[.role]</span><span class="sep">.clb-sol.dev</span>
+    </div>
+    <div class="schema-annotation">
+      <span><span class="key">xxx</span> — site / location prefix</span>
+      <span><span class="key">yyy</span> — function / role of host</span>
+      <span><span class="key">nn</span> — two-digit sequence number</span>
+      <span><span class="key">[.role]</span> — optional service role subdomain</span>
+    </div>
+  </div>
+
+  <!-- Examples -->
+  <div style="margin-bottom:3rem;">
+    <div class="section-label">Examples</div>
+    <h2 style="margin-bottom:1.25rem;">Hostnames in the wild</h2>
+    <div class="example-grid">
+      <div class="example-card">
+        <div class="example-hostname">vps-mon01.clb-sol.dev</div>
+        <div class="example-desc">
+          <strong>vps</strong> — VPS at external hoster ·
+          <strong>mon</strong> — monitoring ·
+          <strong>01</strong> — first instance
+        </div>
+      </div>
+      <div class="example-card">
+        <div class="example-hostname">hau-hyp01.clb-sol.dev</div>
+        <div class="example-desc">
+          <strong>hau</strong> — Steinau an der Straße (DE HAU) ·
+          <strong>hyp</strong> — hypervisor ·
+          <strong>01</strong> — node 1 of cluster
+        </div>
+      </div>
+      <div class="example-card">
+        <div class="example-hostname">hau-lgw01.wxc.clb-sol.dev</div>
+        <div class="example-desc">
+          <strong>hau</strong> — site ·
+          <strong>lgw</strong> — Local Gateway ·
+          <strong>01</strong> — first instance ·
+          <strong>.wxc</strong> — Webex Calling service role
+        </div>
+      </div>
+      <div class="example-card">
+        <div class="example-hostname">hau-ctl01.pzs.clb-sol.dev</div>
+        <div class="example-desc">
+          <strong>hau</strong> — site ·
+          <strong>ctl</strong> — controller ·
+          <strong>01</strong> — first instance ·
+          <strong>.pzs</strong> — physical access system role
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Part 1: Site prefix -->
+  <div style="margin-bottom:3rem;">
+    <div class="section-label">Part 1 · xxx</div>
+    <h2 style="margin-bottom:1rem;">Site / Location Prefix</h2>
+    <div class="callout">
+      <strong>UN/LOCODE reference:</strong> German sites use the 3-letter code directly
+      (e.g. <code class="code" style="font-size:.78rem">hau</code>).
+      Sites outside Germany prepend the ISO 3166-1 alpha-2 country code:
+      <code class="code" style="font-size:.78rem">nl-ams</code>,
+      <code class="code" style="font-size:.78rem">us-nyc</code>.
+    </div>
+    <div class="conv-table-wrap">
+      <table class="conv-table" id="table-sites">
+        <thead>
+          <tr>
+            <th data-col="prefix">Prefix <i class="sort-icon">↕</i></th>
+            <th data-col="meaning">Meaning <i class="sort-icon">↕</i></th>
+            <th data-col="notes">Notes <i class="sort-icon">↕</i></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Part 2: Function -->
+  <div style="margin-bottom:3rem;">
+    <div class="section-label">Part 2 · yyy</div>
+    <h2 style="margin-bottom:1rem;">Host Function</h2>
+    <div class="conv-table-wrap">
+      <table class="conv-table" id="table-functions">
+        <thead>
+          <tr>
+            <th data-col="code">Code <i class="sort-icon">↕</i></th>
+            <th data-col="function">Function <i class="sort-icon">↕</i></th>
+            <th data-col="examples">Examples <i class="sort-icon">↕</i></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Part 3: Role subdomain -->
+  <div style="margin-bottom:3rem;">
+    <div class="section-label">Optional · .role</div>
+    <h2 style="margin-bottom:.75rem;">Service Role Subdomain</h2>
+    <p class="text-dim" style="margin-bottom:1.25rem;max-width:580px;">
+      Appended as a DNS subdomain to group hosts by service context.
+      Useful for wildcard certificates and service-scoped DNS views.
+    </p>
+    <div class="conv-table-wrap">
+      <table class="conv-table" id="table-roles">
+        <thead>
+          <tr>
+            <th data-col="role">Role <i class="sort-icon">↕</i></th>
+            <th data-col="context">Service Context <i class="sort-icon">↕</i></th>
+            <th data-col="example">Example FQDN <i class="sort-icon">↕</i></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Sequence numbers -->
+  <div style="margin-bottom:3rem;">
+    <div class="section-label">Sequence · nn</div>
+    <h2 style="margin-bottom:.75rem;">Numbering</h2>
+    <p class="text-dim" style="max-width:580px;">
+      Two-digit zero-padded integer starting at
+      <code class="code" style="font-size:.78rem">01</code>.
+      Numbers are assigned per function within a site — not globally.
+      A second hypervisor at the same site becomes
+      <code class="code" style="font-size:.78rem">hau-hyp02</code>,
+      while a hypervisor at a different site starts again at
+      <code class="code" style="font-size:.78rem">-hyp01</code>.
+    </p>
+  </div>
+
+</div><!-- /page -->
+
+<site-footer></site-footer>
+
+<script>
+  // ── Sortable table helper ───────────────────────────────────────────────────
+  function makeTable(tableId, dataUrl, columns) {
+    let data = [];
+    let sortCol = null;
+    let sortAsc = true;
+
+    const table = document.getElementById(tableId);
+    const tbody = table.querySelector('tbody');
+
+    // Render rows
+    function render() {
+      const sorted = [...data].sort((a, b) => {
+        if (!sortCol) return 0;
+        const av = (a[sortCol] || '').toLowerCase();
+        const bv = (b[sortCol] || '').toLowerCase();
+        return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+      });
+      tbody.innerHTML = sorted.map(row =>
+        `<tr>${columns.map(c => `<td>${c.render(row)}</td>`).join('')}</tr>`
+      ).join('');
+    }
+
+    // Sort on header click
+    table.querySelectorAll('th[data-col]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.dataset.col;
+        if (sortCol === col) {
+          sortAsc = !sortAsc;
+        } else {
+          sortCol = col;
+          sortAsc = true;
+        }
+        // Update header classes
+        table.querySelectorAll('th').forEach(h => {
+          h.classList.remove('sorted-asc', 'sorted-desc');
+        });
+        th.classList.add(sortAsc ? 'sorted-asc' : 'sorted-desc');
+        render();
+      });
+    });
+
+    // Fetch JSON and render
+    fetch(dataUrl)
+      .then(r => r.json())
+      .then(json => { data = json; render(); })
+      .catch(() => {
+        tbody.innerHTML = `<tr><td colspan="${columns.length}" class="text-dim">Failed to load data.</td></tr>`;
+      });
+  }
+
+  // ── Monospace code renderer ─────────────────────────────────────────────────
+  const code = (val) => `<span class="code">${val}</span>`;
+  const text = (val) => `<span class="text-dim">${val}</span>`;
+  const mono = (val) => `<code style="font-family:var(--mono);font-size:.8rem;color:var(--accent)">${val}</code>`;
+
+  // ── Wire up tables ──────────────────────────────────────────────────────────
+  makeTable('table-sites', 'data/naming-sites.json', [
+    { render: r => code(r.prefix) },
+    { render: r => `<strong style="color:var(--text-head)">${r.meaning}</strong>` },
+    { render: r => text(r.notes) },
+  ]);
+
+  makeTable('table-functions', 'data/naming-functions.json', [
+    { render: r => code(r.code) },
+    { render: r => `<strong style="color:var(--text-head)">${r.function}</strong>` },
+    { render: r => text(r.examples) },
+  ]);
+
+  makeTable('table-roles', 'data/naming-roles.json', [
+    { render: r => `<span class="code green">${r.role}</span>` },
+    { render: r => `<strong style="color:var(--text-head)">${r.context}</strong>` },
+    { render: r => mono(r.example) },
+  ]);
+</script>
+
+</body>
+</html>
