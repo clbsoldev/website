@@ -207,7 +207,15 @@
     // Fetch JSON and render
     fetch(dataUrl)
       .then(r => r.json())
-      .then(json => { data = json; render(); })
+      .then(json => {
+        data = json;
+        // Default sort: first column ascending
+        sortCol = columns[0].key;
+        sortAsc = true;
+        const firstTh = table.querySelector('th[data-col]');
+        if (firstTh) firstTh.classList.add('sorted-asc');
+        render();
+      })
       .catch(() => {
         tbody.innerHTML = `<tr><td colspan="${columns.length}" class="text-dim">Failed to load data.</td></tr>`;
       });
@@ -220,21 +228,21 @@
 
   // ── Wire up tables ──────────────────────────────────────────────────────────
   makeTable('table-sites', 'data/naming-sites.json', [
-    { render: r => code(r.prefix) },
-    { render: r => `<strong style="color:var(--text-head)">${r.meaning}</strong>` },
-    { render: r => text(r.notes) },
+    { key: 'prefix',  render: r => code(r.prefix) },
+    { key: 'meaning', render: r => `<strong style="color:var(--text-head)">${r.meaning}</strong>` },
+    { key: 'notes',   render: r => text(r.notes) },
   ]);
 
   makeTable('table-functions', 'data/naming-functions.json', [
-    { render: r => code(r.code) },
-    { render: r => `<strong style="color:var(--text-head)">${r.function}</strong>` },
-    { render: r => text(r.examples) },
+    { key: 'code',     render: r => code(r.code) },
+    { key: 'function', render: r => `<strong style="color:var(--text-head)">${r.function}</strong>` },
+    { key: 'examples', render: r => text(r.examples) },
   ]);
 
   makeTable('table-roles', 'data/naming-roles.json', [
-    { render: r => `<span class="code green">${r.role}</span>` },
-    { render: r => `<strong style="color:var(--text-head)">${r.context}</strong>` },
-    { render: r => mono(r.example) },
+    { key: 'role',    render: r => `<span class="code green">${r.role}</span>` },
+    { key: 'context', render: r => `<strong style="color:var(--text-head)">${r.context}</strong>` },
+    { key: 'example', render: r => mono(r.example) },
   ]);
 </script>
 
