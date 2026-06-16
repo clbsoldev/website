@@ -606,47 +606,124 @@ def _assign_x_positions(
     zone_w: int = 1044,
 ) -> dict[str, int]:
     """
-    Balanced-tree horizontal layout with zone-boundary clamping.
-    _lab_rows already guarantees each row fits within zone_w.
+    Balanced-tree horizontal layout with collision resolution.
+    Each parent group is centred under its parent, then groups are
+    shifted apart if they overlap, while keeping the whole row within
+    zone boundaries.
     """
     name_cx: dict[str, int] = {}
 
-    def _layout_row(items: list[dict], centre_x: int) -> None:
+    def _place_group(items: list[dict], centre_x: int) -> list[tuple[int,int,dict]]:
+        """Return list of (left_x, right_x, item) placed around centre_x."""
         total_w = sum(_item_width(it) for it in items) + max(0, len(items)-1)*HGAP
         cur_x   = centre_x - total_w // 2
-        # Clamp: never go outside zone boundaries
-        cur_x   = max(zone_x + HGAP, min(cur_x, zone_x + zone_w - total_w - HGAP))
+        result  = []
         for it in items:
-            iw  = _item_width(it)
-            icx = cur_x + iw // 2
-            for node in it["nodes"]:
-                name_cx[node["name"]] = icx
-            it["_cx"] = icx
-            it["_w"]  = iw
+            iw = _item_width(it)
+            result.append((cur_x, cur_x + iw, it))
             cur_x += iw + HGAP
+        return result
+
+    def _resolve_collisions(
+        placed_groups: list[list[tuple[int,int,dict]]]
+    ) -> list[list[tuple[int,int,dict]]]:
+        """
+        Shift groups apart until no two groups overlap.
+        Groups are sorted left-to-right by their centre, then pushed
+        outward from their preferred positions while respecting zone bounds.
+        """
+        # Flatten to (centre_x, group_idx, items)
+        groups = []
+        for gi, grp in enumerate(placed_groups):
+            if not grp:
+                continue
+            left  = grp[0][0]
+            right = grp[-1][1]
+            gcx   = (left + right) // 2
+            groups.append({"gi": gi, "grp": grp, "gcx": gcx,
+                           "w": right - left})
+        groups.sort(key=lambda g: g["gcx"])
+
+        # Iteratively push overlapping neighbours apart (max 10 passes)
+        for _ in range(10):
+            changed = False
+            for i in range(len(groups) - 1):
+                a, b = groups[i], groups[i+1]
+                a_right = a["gcx"] + a["w"] // 2
+                b_left  = b["gcx"] - b["w"] // 2
+                if a_right + HGAP > b_left:
+                    overlap = (a_right + HGAP - b_left)
+                    # Push both apart equally
+                    a["gcx"] -= overlap // 2
+                    b["gcx"] += overlap - overlap // 2
+                    changed = True
+            if not changed:
+                break
+
+        # Clamp entire row into zone bounds
+        if groups:
+            row_left  = groups[0]["gcx"]  - groups[0]["w"] // 2
+            row_right = groups[-1]["gcx"] + groups[-1]["w"] // 2
+            if row_left < zone_x + HGAP:
+                shift = zone_x + HGAP - row_left
+                for g in groups: g["gcx"] += shift
+            row_right = groups[-1]["gcx"] + groups[-1]["w"] // 2
+            if row_right > zone_x + zone_w - HGAP:
+                shift = row_right - (zone_x + zone_w - HGAP)
+                for g in groups: g["gcx"] -= shift
+
+        # Re-place each group at its resolved centre
+        result = [[] for _ in placed_groups]
+        for g in groups:
+            placed = _place_group(
+                [t[2] for t in g["grp"]], g["gcx"]
+            )
+            result[g["gi"]] = placed
+        return result
 
     for row_idx, items in enumerate(rows_items):
         if row_idx == 0:
-            _layout_row(items, zone_cx)
+            placed = _place_group(items, zone_cx)
+            for lx, rx, it in placed:
+                icx = (lx + rx) // 2
+                it["_cx"] = icx
+                it["_w"]  = rx - lx
+                for node in it["nodes"]:
+                    name_cx[node["name"]] = icx
         else:
             from collections import defaultdict as _dd
-            parent_groups: dict[int, list[dict]] = _dd(list)
+            parent_groups_map: dict[int, list[dict]] = _dd(list)
             orphans: list[dict] = []
             for it in items:
                 parent_name = it["nodes"][0].get("_parent")
                 if parent_name and parent_name in name_cx:
                     pcx = name_cx[parent_name]
-                    parent_groups[pcx].append(it)
+                    parent_groups_map[pcx].append(it)
                 else:
                     orphans.append(it)
 
-            for pcx in sorted(parent_groups):
-                _layout_row(parent_groups[pcx], pcx)
-
+            # Place each group at its preferred parent centre
+            placed_groups: list[list[tuple]] = []
+            group_keys = sorted(parent_groups_map)
+            for pcx in group_keys:
+                placed_groups.append(_place_group(parent_groups_map[pcx], pcx))
             if orphans:
-                _layout_row(orphans, zone_cx)
+                placed_groups.append(_place_group(orphans, zone_cx))
+
+            # Resolve collisions between groups
+            resolved = _resolve_collisions(placed_groups)
+
+            # Commit positions
+            for grp_placed in resolved:
+                for lx, rx, it in grp_placed:
+                    icx = (lx + rx) // 2
+                    it["_cx"] = icx
+                    it["_w"]  = rx - lx
+                    for node in it["nodes"]:
+                        name_cx[node["name"]] = icx
 
     return name_cx
+
 
 
 def _zone_h_lab(nodes: list[dict]) -> int:
