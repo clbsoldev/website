@@ -722,6 +722,46 @@ def _assign_x_positions(
                     for node in it["nodes"]:
                         name_cx[node["name"]] = icx
 
+    # ── Bottom-up pass: re-centre parents over their children ─────────────────
+    # If a parent has only one child group (or all children fall under one
+    # parent), shift the parent to the midpoint of its children's extents.
+    # We do this for every row from the bottom up (reversed).
+    # Build: node_name → item (for position updates)
+    name_to_item: dict[str, dict] = {}
+    for row_items in rows_items:
+        for it in row_items:
+            for node in it["nodes"]:
+                name_to_item[node["name"]] = it
+
+    for row_idx in range(len(rows_items) - 2, -1, -1):
+        parent_row = rows_items[row_idx]
+        child_row  = rows_items[row_idx + 1] if row_idx + 1 < len(rows_items) else []
+
+        # Build: parent_name → list of child item centres
+        parent_child_cxs: dict[str, list[int]] = {}
+        for it in child_row:
+            pname = it["nodes"][0].get("_parent")
+            if pname and pname in name_cx:
+                child_cx = it.get("_cx", name_cx.get(it["nodes"][0]["name"], 0))
+                child_w  = it.get("_w", _item_width(it))
+                # Use the full span of the child item
+                parent_child_cxs.setdefault(pname, [])
+                parent_child_cxs[pname].append((child_cx - child_w//2, child_cx + child_w//2))
+
+        for it in parent_row:
+            for node in it["nodes"]:
+                spans = parent_child_cxs.get(node["name"], [])
+                if not spans:
+                    continue
+                child_left  = min(s[0] for s in spans)
+                child_right = max(s[1] for s in spans)
+                new_cx = (child_left + child_right) // 2
+                # Only shift if this parent has a single child group
+                # (multi-child parents are already well-placed by the top-down pass)
+                if len(spans) == 1:
+                    it["_cx"] = new_cx
+                    name_cx[node["name"]] = new_cx
+
     return name_cx
 
 
