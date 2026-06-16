@@ -17,7 +17,7 @@
 <line x1="550" y1="484" x2="446" y2="566" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
 <line x1="540" y1="788" x2="446" y2="638" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
 <line x1="715" y1="1014" x2="621" y2="1164" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
-<line x1="540" y1="860" x2="540" y2="942" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
+<line x1="540" y1="860" x2="903" y2="942" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
 <line x1="715" y1="1014" x2="809" y2="1164" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
 <line x1="446" y1="638" x2="352" y2="788" stroke="#2a3a4a" stroke-width="1.5" opacity="0.7"/>
 <rect x="28" y="28" width="514" height="216" rx="2" fill="none" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="4,4"/>
@@ -69,10 +69,10 @@
 <text x="540" y="814" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">USW-Lite-8-PoE-Keller</text>
 <text x="540" y="831" text-anchor="middle" fill="#5a7a94" font-size="7">Ubiquiti Switch - Backbone</text>
 <text x="540" y="842" text-anchor="middle" fill="#5a7a94" font-size="7">Home Network</text>
-<rect x="455" y="942" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="540" y="968" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">MGMT-Pi-Home</text>
-<text x="540" y="985" text-anchor="middle" fill="#5a7a94" font-size="7">Monitoring Proxy, SSH Jump,</text>
-<text x="540" y="996" text-anchor="middle" fill="#5a7a94" font-size="7">...</text>
+<rect x="818" y="942" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<text x="903" y="968" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">MGMT-Pi-Home</text>
+<text x="903" y="985" text-anchor="middle" fill="#5a7a94" font-size="7">Monitoring Proxy, SSH Jump,</text>
+<text x="903" y="996" text-anchor="middle" fill="#5a7a94" font-size="7">...</text>
 <rect x="46" y="942" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="131" y="968" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">ansible-RPi3Bplus</text>
 <text x="131" y="985" text-anchor="middle" fill="#5a7a94" font-size="7">RasPi 3B+ as ansible Control</text>
