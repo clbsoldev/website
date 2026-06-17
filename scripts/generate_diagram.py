@@ -1125,7 +1125,7 @@ def build_svg(
                 ay_e, by2_e = ay, by2   # same row, side connection
             conn_lines.append(
                 f'<line x1="{ax}" y1="{ay_e}" x2="{bx2}" y2="{by2_e}" '
-                f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.7"/>')
+                f'stroke="{C["cable"]}" stroke-width="2" opacity="0.85"/>')
 
     # ── VPN tunnels ────────────────────────────────────────────────────────────
     tunnel_elems: list[str] = []
@@ -1323,14 +1323,23 @@ def build_cluster_svg(
                          node.get("description",""), bdr)
         pos_index[node["name"]] = (ccx, ccy)
 
-        # Line from context node to cluster member
+        # Line: from bottom-centre of the correct context node → top of this node card
         pname = node.get("_parent")
         if pname and pname in pos_index:
             px, py = pos_index[pname]
+            # py is card center → bottom edge = py + CH//2
             conn_lines.append(
                 f'<line x1="{px}" y1="{py + CH//2}" '
-                f'x2="{ccx}" y2="{box_y}" '
-                f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.8"/>')
+                f'x2="{ccx}" y2="{node_y}" '
+                f'stroke="{C["cable"]}" stroke-width="2" opacity="0.85"/>')
+        elif context_nodes:
+            # No explicit parent — connect from nearest context node
+            ctx_ccx = pos_index[context_nodes[0]["name"]][0]
+            ctx_ccy = pos_index[context_nodes[0]["name"]][1]
+            conn_lines.append(
+                f'<line x1="{ctx_ccx}" y1="{ctx_ccy + CH//2}" '
+                f'x2="{ccx}" y2="{node_y}" '
+                f'stroke="{C["cable"]}" stroke-width="2" opacity="0.85"/>')
 
     # VMs centred under cluster box
     if vms:
@@ -1356,7 +1365,7 @@ def build_cluster_svg(
             bx2, by2 = pos_index[nb_]
             conn_lines.append(
                 f'<line x1="{ax}" y1="{ay}" x2="{bx2}" y2="{by2}" '
-                f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.6"/>')
+                f'stroke="{C["cable"]}" stroke-width="2" opacity="0.85"/>')
 
     final: list[str] = svg[:2] + conn_lines + svg[2:]
     final.append('</svg>')

@@ -1,34 +1,41 @@
 /**
  * clbsoldev · Web Components
- * <site-nav active="naming">   — sticky navigation bar
- * <site-footer>                — shared footer
- * <site-impressum>             — impressum block (legal)
+ * <site-nav active="...">  — sticky navigation with Infrastructure hover dropdown
+ * <site-footer>            — shared footer
+ * <site-impressum>         — impressum block (loads from data/impressum.json)
  */
 
 // ── <site-nav> ────────────────────────────────────────────────────────────────
 class SiteNav extends HTMLElement {
   connectedCallback() {
     const active = this.getAttribute('active') || '';
-    const links = [
-      { href: 'index.html#about',   label: 'About',      key: 'about'     },
-      { href: 'index.html#network', label: 'Network',    key: 'network'   },
-      { href: 'naming.html',        label: 'Naming',     key: 'naming'    },
-      { href: 'clusters.html',      label: 'Clusters',   key: 'clusters'  },
-      { href: 'index.html#impressum', label: 'Impressum', key: 'impressum' },
-      { href: 'https://status.clb-sol.dev', label: 'Status ↗', key: 'status', external: true },
-      { href: 'https://github.com/clbsoldev', label: 'GitHub ↗', key: 'github', external: true },
-    ];
 
     this.innerHTML = `
       <nav class="site-nav">
         <a class="nav-brand" href="index.html"><span>// </span>clbsoldev</a>
         <ul class="nav-links">
-          ${links.map(l => `
-            <li><a href="${l.href}"
-              ${l.external ? 'target="_blank" rel="noopener"' : ''}
-              ${l.key === active ? 'class="active"' : ''}
-            >${l.label}</a></li>
-          `).join('')}
+          <li><a href="index.html#about"
+            ${active === 'about' ? 'class="active"' : ''}>About</a></li>
+
+          <li class="nav-dropdown">
+            <a class="nav-dropdown-toggle${['network','clusters'].includes(active) ? ' active' : ''}"
+               href="#">Infrastructure ▾</a>
+            <ul class="nav-dropdown-menu">
+              <li><a href="index.html#network"
+                ${active === 'network'  ? 'class="active"' : ''}>Network</a></li>
+              <li><a href="clusters.html"
+                ${active === 'clusters' ? 'class="active"' : ''}>Virtualization</a></li>
+            </ul>
+          </li>
+
+          <li><a href="naming.html"
+            ${active === 'naming' ? 'class="active"' : ''}>Naming</a></li>
+          <li><a href="index.html#impressum"
+            ${active === 'impressum' ? 'class="active"' : ''}>Impressum</a></li>
+          <li><a href="https://status.clb-sol.dev"
+            target="_blank" rel="noopener">Status ↗</a></li>
+          <li><a href="https://github.com/clbsoldev"
+            target="_blank" rel="noopener">GitHub ↗</a></li>
         </ul>
       </nav>`;
   }
