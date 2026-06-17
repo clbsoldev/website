@@ -15,7 +15,7 @@ Cisco Collaboration & Webex solutions.
 |------|-------------|
 | `index.html` | Overview: purpose, about, network architecture, network diagram |
 | `naming.html` | Host naming convention with sortable tables |
-| `clusters.html` | Virtualisation cluster detail diagrams |
+| `clusters.html` | Virtualization cluster detail diagrams |
 
 ---
 
@@ -118,7 +118,7 @@ This file is loaded at runtime by the `<site-impressum>` web component — `asse
 
 ## Secrets
 
-Add under **Settings → Secrets and variables → Actions** (Repository or Organisation level):
+Add under **Settings → Secrets and variables → Actions** (Repository or Organization level):
 
 | Secret | Description |
 |--------|-------------|
