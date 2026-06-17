@@ -4,8 +4,9 @@ Static GitHub Pages site documenting the **clbsoldev** home lab —
 a private environment for developing, evaluating and documenting
 Cisco Collaboration & Webex solutions.
 
-🌐 **Live:** `https://clbsoldev.github.io/website/`
+🌐 **Live:** `https://clb-sol.dev`
 📊 **Status:** `https://status.clb-sol.dev`
+🐙 **GitHub Org:** `https://github.com/clbsoldev`
 
 ---
 
@@ -13,9 +14,12 @@ Cisco Collaboration & Webex solutions.
 
 | Page | Description |
 |------|-------------|
-| `index.html` | Overview: purpose, about, network architecture, network diagram |
-| `naming.html` | Host naming convention with sortable tables |
+| `index.html` | Landing page: hero, about / purpose cards |
+| `network.html` | Network architecture, WireGuard tunnel, auto-generated diagram |
 | `clusters.html` | Virtualization cluster detail diagrams |
+| `naming.html` | Host naming convention with sortable tables |
+
+Navigation groups `network.html` and `clusters.html` under an **Infrastructure** hover dropdown.
 
 ---
 
@@ -23,24 +27,28 @@ Cisco Collaboration & Webex solutions.
 
 ```
 .
-├── index.html                        # Main page
-├── naming.html                       # Naming convention
-├── clusters.html                     # Cluster detail view
+├── index.html                          # Landing page
+├── network.html                        # Network architecture & diagram
+├── clusters.html                       # Virtualization cluster detail view
+├── naming.html                         # Host naming convention
 ├── assets/
-│   ├── style.css                     # Shared stylesheet
-│   ├── components.js                 # Web Components: site-nav, site-footer, site-impressum
-│   ├── clusters.js                   # Cluster page logic
-│   ├── diagram.svg                   # Auto-generated network diagram (Netbox → GitHub Actions)
-│   ├── diagram.png                   # PNG export of network diagram
-│   ├── diagram_meta.json             # Diagram metadata + cluster list
-│   └── diagram-cluster-<name>.svg   # Per-cluster detail diagrams (on demand)
+│   ├── style.css                       # Shared stylesheet (all pages)
+│   ├── components.js                   # Web Components: <site-nav>, <site-footer>, <site-impressum>
+│   ├── clusters.js                     # Cluster page logic (loads diagram_meta.json)
+│   ├── diagram.svg                     # Auto-generated main network diagram
+│   ├── diagram.png                     # PNG export of main network diagram
+│   ├── diagram_meta.json               # Diagram metadata + cluster list (committed by CI)
+│   └── diagram-cluster-<name>.svg     # Per-cluster detail diagrams (generated on demand)
 ├── data/
-│   ├── impressum.json                # Legal contact data (edit here, not in components.js)
-│   ├── naming-sites.json             # Site/location prefix table
-│   ├── naming-functions.json         # Host function code table
-│   └── naming-roles.json             # Service role subdomain table
-└── scripts/
-    └── generate_diagram.py           # Netbox API → SVG/PNG diagram generator
+│   ├── impressum.json                  # Legal contact data — edit here, not in components.js
+│   ├── naming-sites.json               # Site/location prefix table
+│   ├── naming-functions.json           # Host function code table
+│   └── naming-roles.json               # Service role subdomain table
+├── scripts/
+│   └── generate_diagram.py             # Netbox API → SVG/PNG diagram generator
+└── .github/
+    └── workflows/
+        └── netbox-diagram.yml          # Scheduled + push-triggered diagram generation
 ```
 
 ---
@@ -52,18 +60,22 @@ Cisco Collaboration & Webex solutions.
 
 ---
 
-## Network Diagram
+## Diagram Generation
 
 Diagrams are auto-generated from **Netbox Cloud Free** via GitHub Actions
-and committed back to the repo as static SVG/PNG files.
+and committed back to the repo as static SVG/PNG files — no live API calls from the browser.
 
-### Scheduled run
-Every **Monday at 18:00 UTC** — triggered automatically.
+### Triggers
 
-### Manual run
+| Trigger | When | What |
+|---------|------|------|
+| Push to `scripts/generate_diagram.py` | On every push | Main diagram + all cluster diagrams |
+| Scheduled | Every Monday 18:00 UTC | Main diagram + all cluster diagrams |
+| Manual (`workflow_dispatch`) | On demand | Configurable via inputs (see below) |
+
+### Manual run inputs
+
 **Actions → Netbox → Network Diagram → Run workflow**
-
-Available inputs:
 
 | Input | Default | Description |
 |-------|---------|-------------|
@@ -79,58 +91,79 @@ export NETBOX_TOKEN=your_readonly_token
 # Main overview diagram (default)
 python scripts/generate_diagram.py
 
-# With cluster detail diagrams
+# Main diagram + all cluster detail diagrams
 python scripts/generate_diagram.py --cluster-diagrams
 
-# Single cluster only
+# Single cluster detail diagram only
 python scripts/generate_diagram.py --cluster hau-hypcl01
 
-# Expand cluster boxes to individual nodes
+# Expand cluster boxes to individual nodes (no grouping box)
 python scripts/generate_diagram.py --no-simplify
 
-# Skip main diagram, only generate cluster diagrams
+# Skip main diagram, generate cluster diagrams only
 python scripts/generate_diagram.py --no-main-diagram --cluster-diagrams
 ```
 
 ---
 
-## Netbox Tag Setup
+## Netbox Tag Reference
 
-Create these tags once under **Extras → Tags** in Netbox:
+Create these tags under **Extras → Tags** in Netbox and assign them to devices/VMs/clusters:
+
+### Device & VM tags
 
 | Tag slug | Effect |
 |----------|--------|
-| `diagram-public` | Device/VM appears in **Public Infrastructure** zone |
-| `diagram-homelab` | Device appears in **Home Lab** zone |
-| `diagram-exclude` | Device is always excluded from diagrams |
-| `diagram-no-vms` | Device's cluster VMs are not shown as children |
+| `diagram-public` | Appears in the **Public Infrastructure** zone |
+| `diagram-homelab` | Appears in the **Home Lab** zone |
+| `diagram-exclude` | Always excluded from all diagrams |
+| `diagram-no-vms` | Cluster VMs are not rendered as children of this device |
 
-Devices can have both `diagram-public` and `diagram-homelab` to appear in both zones (e.g. a VPN gateway).
+A device can carry both `diagram-public` and `diagram-homelab` to appear in both zones.
+
+### Cluster tags
+
+| Tag slug | Effect |
+|----------|--------|
+| `diagram-cluster-exclude` | Cluster is skipped during `--cluster-diagrams` runs (unless explicitly named with `--cluster`) |
+
+### Custom fields (optional, on Cluster objects)
+
+| Field name | Type | Effect |
+|------------|------|--------|
+| `diagram_notes` | Text | Shown as description text on the Clusters page |
+
+If `diagram_notes` is not set, the `comments` field is used as fallback.
 
 ---
 
 ## Impressum
 
 Edit `data/impressum.json` to update the legal contact information.
-This file is loaded at runtime by the `<site-impressum>` web component — `assets/components.js` never needs to be changed for contact data updates.
+The `<site-impressum>` web component loads this file at runtime —
+`assets/components.js` never needs to be edited for contact data changes.
 
 ---
 
-## Secrets
+## GitHub Secrets
 
 Add under **Settings → Secrets and variables → Actions** (Repository or Organization level):
 
 | Secret | Description |
 |--------|-------------|
 | `NETBOX_URL` | `https://yourinstance.netboxcloud.com` |
-| `NETBOX_TOKEN` | Read-only API token |
+| `NETBOX_TOKEN` | Read-only Netbox API token (Token format, no Bearer prefix) |
 
 ---
 
 ## Tech Stack
 
-- **Hosting:** GitHub Pages (static)
-- **Styles:** Vanilla CSS with CSS custom properties (`assets/style.css`)
-- **Components:** Native Web Components — no framework, no build step (`assets/components.js`)
-- **Diagrams:** Python + Netbox REST API → SVG (generated by GitHub Actions)
-- **Data:** Static JSON files in `data/` loaded client-side via `fetch()`
+| Layer | Technology |
+|-------|------------|
+| Hosting | GitHub Pages (static, no server-side rendering) |
+| Styles | Vanilla CSS, CSS custom properties — `assets/style.css` |
+| Components | Native Web Components, no framework, no build step — `assets/components.js` |
+| Page logic | Vanilla JavaScript modules — `assets/clusters.js` |
+| Diagram generation | Python 3.13 + Netbox REST API → SVG/PNG |
+| Data | Static JSON in `data/`, loaded client-side via `fetch()` |
+| CI/CD | GitHub Actions (`netbox-diagram.yml`) |

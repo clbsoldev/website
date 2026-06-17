@@ -21,7 +21,7 @@ class SiteNav extends HTMLElement {
             <a class="nav-dropdown-toggle${['network','clusters'].includes(active) ? ' active' : ''}"
                href="#">Infrastructure ▾</a>
             <ul class="nav-dropdown-menu">
-              <li><a href="index.html#network"
+              <li><a href="network.html"
                 ${active === 'network'  ? 'class="active"' : ''}>Network</a></li>
               <li><a href="clusters.html"
                 ${active === 'clusters' ? 'class="active"' : ''}>Virtualization</a></li>
