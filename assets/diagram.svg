@@ -87,8 +87,9 @@
 <rect x="432" y="958" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="517" y="990" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp02</text>
 <text x="517" y="1007" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 02</text>
-<rect x="620" y="958" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="705" y="997" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp03</text>
+<rect x="620" y="958" width="170" height="72" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
+<text x="705" y="990" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp03</text>
+<text x="705" y="1007" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 3, single Network</text>
 <rect x="372" y="1056" width="140" height="44" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
 <text x="442" y="1071" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-lgw01</text>
 <text x="442" y="1086" text-anchor="middle" fill="#5a7a94" font-size="6">Webex Calling</text>
