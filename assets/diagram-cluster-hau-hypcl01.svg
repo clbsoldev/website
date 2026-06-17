@@ -1,14 +1,14 @@
 <svg viewBox="0 0 960 440" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
 <rect width="960" height="440" fill="#0a0e14"/>
-<line x1="480" y1="136" x2="272" y2="176" stroke="#2a3a4a" stroke-width="1.5" opacity="0.8"/>
-<line x1="480" y1="136" x2="480" y2="176" stroke="#2a3a4a" stroke-width="1.5" opacity="0.8"/>
-<line x1="480" y1="136" x2="688" y2="176" stroke="#2a3a4a" stroke-width="1.5" opacity="0.8"/>
+<line x1="480" y1="136" x2="272" y2="216" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
+<line x1="480" y1="136" x2="480" y2="216" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
+<line x1="480" y1="136" x2="688" y2="216" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="480" y1="310" x2="480" y2="350" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="480" y1="350" x2="391" y2="350" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="480" y1="350" x2="569" y2="350" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="480" y1="96" x2="480" y2="256" stroke="#2a3a4a" stroke-width="1.5" opacity="0.6"/>
-<line x1="480" y1="96" x2="272" y2="256" stroke="#2a3a4a" stroke-width="1.5" opacity="0.6"/>
-<line x1="688" y1="256" x2="480" y2="96" stroke="#2a3a4a" stroke-width="1.5" opacity="0.6"/>
+<line x1="480" y1="96" x2="480" y2="256" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
+<line x1="480" y1="96" x2="272" y2="256" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
+<line x1="688" y1="256" x2="480" y2="96" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <rect x="0" y="0" width="960" height="36" fill="#111620"/>
 <text x="32" y="22" fill="#5a7a94" font-size="8" letter-spacing="2">CLUSTER DETAIL VIEW</text>
 <text x="928" y="22" text-anchor="end" fill="#00d4ff" font-size="8" font-weight="600" letter-spacing="1">hau-hypcl01</text>
