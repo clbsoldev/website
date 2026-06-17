@@ -11,15 +11,26 @@
   fetch('assets/diagram_meta.json')
     .then(r => r.ok ? r.json() : Promise.reject('not found'))
     .then(meta => {
-      metaLine.innerHTML =
-        `Last generated: <span id="meta-ts">${meta.generated_at || '—'}</span> &nbsp;·&nbsp; ` +
-        `Source: ${meta.source || '—'} &nbsp;·&nbsp; ` +
-        `${meta.lab_nodes || 0} lab devices &nbsp;·&nbsp; ` +
-        `${meta.vm_count  || 0} VMs`;
-
       const clusters = (meta.clusters || [])
         .slice()
         .sort((a, b) => a.name.localeCompare(b.name));
+
+      // Compute cluster-specific totals
+      const clusterNodeCount = clusters.reduce((s, c) => s + (c.node_count || 0), 0);
+      const clusterVmCount   = clusters.reduce((s, c) => s + (c.vm_count   || 0), 0);
+
+      metaLine.innerHTML =
+        `Last generated: <span id="meta-ts">${meta.generated_at || '—'}</span> &nbsp;·&nbsp; ` +
+        `Source: ${meta.source || '—'} &nbsp;·&nbsp; ` +
+        `${clusters.length} cluster${clusters.length !== 1 ? 's' : ''} &nbsp;·&nbsp; ` +
+        `${clusterNodeCount} node${clusterNodeCount !== 1 ? 's' : ''} &nbsp;·&nbsp; ` +
+        `${clusterVmCount} VM${clusterVmCount !== 1 ? 's' : ''}`;
+
+      // Hide the hint once diagrams are present
+      if (clusters.length > 0) {
+        const hint = document.querySelector('.generate-hint');
+        if (hint) hint.style.display = 'none';
+      }
 
       if (clusters.length === 0) {
         grid.innerHTML = `
