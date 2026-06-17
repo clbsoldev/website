@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-17 09:11 UTC",
+  "generated_at": "2026-06-17 09:18 UTC",
   "source": "netbox",
   "saas_count": 3,
   "device_count": 28,
@@ -9,7 +9,22 @@
   "cable_count": 12,
   "tunnel_count": 1,
   "tunnel_source": "netbox",
-  "clusters": [],
+  "clusters": [
+    {
+      "name": "hau-hypcl01",
+      "description": "Proxmox VE Cluster",
+      "notes": "Proxmox VE Cluster based on Lenovo M720q tiny",
+      "node_count": 3,
+      "nodes": [
+        "hau-hyp01",
+        "hau-hyp02",
+        "hau-hyp03"
+      ],
+      "vm_count": 2,
+      "svg": "assets/diagram-cluster-hau-hypcl01.svg",
+      "png": "assets/diagram-cluster-hau-hypcl01.png"
+    }
+  ],
   "filter_tags": {
     "public": "diagram-public",
     "homelab": "diagram-homelab",
