@@ -1310,31 +1310,31 @@ def build_cluster_svg(
         a(f'<text x="{box_cx}" y="{box_y + 30}" text-anchor="middle" '
           f'fill="{C["dim"]}" font-size="7">{_xml(cluster_desc)}</text>')
 
-    # Cluster member cards
+    # Cluster member cards + parent→node connection map
     node_xs = _xs(n_nodes, box_x + box_pad, box_w - box_pad * 2, CW, GAP)
     node_y  = box_y + box_lbl + box_pad
 
-    # Build parent→children map so we draw one line per UNIQUE parent
-    parent_to_nodes: dict[str, list[tuple[int,int]]] = {}
-    for j, node in enumerate(nodes):
-        pname = node.get("_parent")
-        if not pname:
-            pname = context_nodes[0]["name"] if context_nodes else None
-        if pname:
-            parent_to_nodes.setdefault(pname, [])
+    # Ensure siblings inherit _parent from their primary
+    primary_parent = next(
+        (n.get("_parent") for n in nodes if n.get("cluster_primary") and n.get("_parent")),
+        context_nodes[0]["name"] if context_nodes else None
+    )
+    for node in nodes:
+        if not node.get("_parent") and primary_parent:
+            node["_parent"] = primary_parent
 
+    # Build parent → list of (card_cx, card_top_y) — one entry per node
+    parent_to_nodes: dict[str, list[tuple[int,int]]] = {}
     for j, node in enumerate(nodes):
         bdr = C["lab"] if node.get("status","active") == "active" else C["off"]
         ccx, ccy = _card(node_xs[j], node_y, node["name"],
                          node.get("description",""), bdr)
         pos_index[node["name"]] = (ccx, ccy)
         pname = node.get("_parent")
-        if not pname and context_nodes:
-            pname = context_nodes[0]["name"]
         if pname:
             parent_to_nodes.setdefault(pname, []).append((ccx, node_y))
 
-    # Draw one line per node from its parent's bottom edge to the node's top edge
+    # Draw exactly one line per node from parent bottom-edge to node top-edge
     for pname, child_positions in parent_to_nodes.items():
         if pname not in pos_index:
             continue
@@ -1345,7 +1345,9 @@ def build_cluster_svg(
                 f'x2="{ccx}" y2="{cy_top}" '
                 f'stroke="{C["cable"]}" stroke-width="2" opacity="0.85"/>')
 
-    # VMs centred under cluster box
+    total_lines = sum(len(v) for v in parent_to_nodes.values())
+    print(f"[DEBUG] Cluster '{cluster_name}': {n_nodes} nodes, "
+          f"{len(parent_to_nodes)} parent(s), {total_lines} cable line(s)")
     if vms:
         box_cx  = box_x + box_w//2
         box_bot = box_y + box_h
