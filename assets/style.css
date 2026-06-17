@@ -269,8 +269,8 @@ h2 {
 /* ── SECTION ── */
 section { padding: 5rem 2rem; }
 .section-inner { max-width: 960px; margin: 0 auto; }
-#about { background: var(--bg); }
-#impressum { background: var(--bg); }
+#about     { background: var(--bg); padding: 3rem 2rem 0; }
+#impressum { background: var(--bg); padding: 2rem 2rem 3rem; }
 
 /* ── HERO ── */
 #home {
