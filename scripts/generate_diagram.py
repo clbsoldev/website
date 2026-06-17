@@ -134,28 +134,49 @@ FALLBACK_HOMELAB: list[dict] = [
 # ══════════════════════════════════════════════════════════════════════════════
 
 def nb_get(path: str, params: dict | None = None) -> list:
-    """Paginated GET. path should NOT contain '?'. Extra params go in `params`."""
+    """Paginated GET. Retries up to 3 times on timeout/connection error."""
     if not NETBOX_URL or not NETBOX_TOKEN:
         return []
-    base = f"{NETBOX_URL}/api{path}"
-    p = {"limit": "200"}
+    base  = f"{NETBOX_URL}/api{path}"
+    p     = {"limit": "200"}
     if params:
         p.update(params)
     query = "&".join(f"{k}={v}" for k, v in p.items())
     url: str | None = f"{base}?{query}"
-    results: list = []
+    results: list   = []
+
     while url:
-        req = urllib.request.Request(
-            url, headers={"Authorization": f"Token {NETBOX_TOKEN}", "Accept": "application/json"}
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=20) as resp:
-                data = json.loads(resp.read().decode())
-                results.extend(data.get("results", []))
-                url = data.get("next")
-        except urllib.error.URLError as exc:
-            print(f"[WARN] Netbox API error ({path}): {exc}", file=sys.stderr)
+        last_exc = None
+        for attempt in range(1, 4):
+            try:
+                req = urllib.request.Request(
+                    url,
+                    headers={
+                        "Authorization": f"Token {NETBOX_TOKEN}",
+                        "Accept":        "application/json",
+                    },
+                )
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    data = json.loads(resp.read().decode())
+                    results.extend(data.get("results", []))
+                    url = data.get("next")
+                    last_exc = None
+                    break
+            except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                last_exc = exc
+                wait = attempt * 5
+                print(f"[WARN] Netbox API attempt {attempt}/3 failed "
+                      f"({path}): {exc}  – retrying in {wait}s …",
+                      file=sys.stderr)
+                import time; time.sleep(wait)
+
+        if last_exc is not None:
+            print(f"[ERROR] Netbox API unreachable after 3 attempts: {path}",
+                  file=sys.stderr)
+            print(f"[ERROR] Target URL (no token): {base}",
+                  file=sys.stderr)
             break
+
     return results
 
 def _tags(obj: dict) -> set[str]:
