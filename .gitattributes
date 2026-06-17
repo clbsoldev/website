@@ -1,0 +1,28 @@
+# ── Default: normalise line endings to LF on commit ─────────────────────────
+* text=auto eol=lf
+
+# ── Web assets ───────────────────────────────────────────────────────────────
+*.html    text eol=lf
+*.css     text eol=lf
+*.js      text eol=lf
+*.json    text eol=lf
+*.md      text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+
+# ── Python ───────────────────────────────────────────────────────────────────
+*.py      text eol=lf
+
+# ── Generated binary assets – diff disabled, no merge conflicts ──────────────
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.ico     binary
+
+# ── SVG: treat as text for diffs, but tell GitHub it's not code ──────────────
+*.svg     text eol=lf linguist-language=SVG linguist-detectable=false
+
+# ── GitHub Linguist: exclude generated/vendor files from language stats ───────
+assets/diagram*.svg   linguist-generated=true
+assets/diagram*.png   linguist-generated=true
+assets/diagram_meta.json linguist-generated=true

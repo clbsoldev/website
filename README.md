@@ -1,89 +1,136 @@
-# Collaboration Solution Development – GitHub Pages
+# Collaboration Solution Development · Lab Website
 
-Private Lab Documentation Site for `https://github.com/clbsoldev`
+Static GitHub Pages site documenting the **clbsoldev** home lab —
+a private environment for developing, evaluating and documenting
+Cisco Collaboration & Webex solutions.
+
+🌐 **Live:** `https://clbsoldev.github.io/website/`
+📊 **Status:** `https://status.clb-sol.dev`
+
+---
+
+## Pages
+
+| Page | Description |
+|------|-------------|
+| `index.html` | Overview: purpose, about, network architecture, network diagram |
+| `naming.html` | Host naming convention with sortable tables |
+| `clusters.html` | Virtualisation cluster detail diagrams |
+
+---
 
 ## Repository Structure
 
 ```
 .
-├── index.html                          # Main GitHub Pages site
+├── index.html                        # Main page
+├── naming.html                       # Naming convention
+├── clusters.html                     # Cluster detail view
 ├── assets/
-│   ├── diagram.svg                     # Auto-generated network diagram (Netbox)
-│   ├── diagram.png                     # Optional PNG export
-│   └── diagram_meta.json              # Generation timestamp + source info
-├── scripts/
-│   └── generate_diagram.py            # Netbox API → SVG/PNG generator
-└── .github/
-    └── workflows/
-        └── netbox-diagram.yml         # Scheduled GitHub Actions workflow
+│   ├── style.css                     # Shared stylesheet
+│   ├── components.js                 # Web Components: site-nav, site-footer, site-impressum
+│   ├── clusters.js                   # Cluster page logic
+│   ├── diagram.svg                   # Auto-generated network diagram (Netbox → GitHub Actions)
+│   ├── diagram.png                   # PNG export of network diagram
+│   ├── diagram_meta.json             # Diagram metadata + cluster list
+│   └── diagram-cluster-<name>.svg   # Per-cluster detail diagrams (on demand)
+├── data/
+│   ├── impressum.json                # Legal contact data (edit here, not in components.js)
+│   ├── naming-sites.json             # Site/location prefix table
+│   ├── naming-functions.json         # Host function code table
+│   └── naming-roles.json             # Service role subdomain table
+└── scripts/
+    └── generate_diagram.py           # Netbox API → SVG/PNG diagram generator
 ```
+
+---
 
 ## GitHub Pages Setup
 
-1. Go to **Settings → Pages** in this repository
-2. Source: **Deploy from a branch** → `main` → `/ (root)`
-3. Save – the site will be live at `https://clbsoldev.github.io/<repo-name>/`
+1. **Settings → Pages → Source:** Deploy from branch `main` / `/ (root)`
+2. The site is available at `https://<org>.github.io/<repo>/`
 
-## Netbox Diagram – GitHub Secrets
+---
 
-Add the following secrets under **Settings → Secrets and variables → Actions**:
+## Network Diagram
 
-| Secret          | Description                                    |
-|-----------------|------------------------------------------------|
-| `NETBOX_URL`    | Your Netbox Cloud Free URL, e.g. `https://yourinstance.netboxcloud.com` |
-| `NETBOX_TOKEN`  | A read-only API token from Netbox              |
+Diagrams are auto-generated from **Netbox Cloud Free** via GitHub Actions
+and committed back to the repo as static SVG/PNG files.
 
-The workflow runs **every Sunday at 03:00 UTC** and can also be triggered manually
-via **Actions → Netbox → Network Diagram → Run workflow**.
+### Scheduled run
+Every **Monday at 18:00 UTC** — triggered automatically.
 
-## Netbox Device Zone Assignment (pure Tag-based)
+### Manual run
+**Actions → Netbox → Network Diagram → Run workflow**
 
-Only devices with **at least one diagram tag** appear in the diagram. Everything else is ignored.
+Available inputs:
 
-| Tag slug | Zone |
-|----------|------|
-| `diagram-public` | Public Infrastructure (orange) |
-| `diagram-homelab` | Home Lab (green) |
-| `diagram-exclude` | Always excluded (safety override) |
+| Input | Default | Description |
+|-------|---------|-------------|
+| `cluster_diagrams` | `false` | Generate per-cluster detail SVGs |
+| `cluster` | *(empty)* | Generate diagram for one specific cluster only |
 
-A device can carry **both** `diagram-public` and `diagram-homelab` to appear in both zones (e.g. a VPN gateway).
-
-### Netbox Tag Setup
-
-Create once under **Extras → Tags** in Netbox:
-
-```
-diagram-public
-diagram-homelab
-diagram-exclude
-```
-
-Then assign the relevant tags to each device. No tenant, site or role filtering is applied – tags are the only selector.
-
-### Cables & Connections
-
-Physical connections are fetched from `/dcim/cables/`. A cable appears as a solid line in the diagram if **both** endpoint devices are tagged.
-
-**WireGuard and other logical tunnels** are not stored as Netbox cables. Add them to the `LOGICAL_TUNNELS` list in `scripts/generate_diagram.py`:
-
-```python
-LOGICAL_TUNNELS = [
-    ("VPS nginx", "Unifi Gateway", "WireGuard VPN", "wireguard"),
-    # ("Device A", "Device B", "Label", "logical"),
-]
-```
-
-Device names must match the Netbox device names exactly.
-
-## Manual Diagram Regeneration
+### Local run
 
 ```bash
 export NETBOX_URL=https://yourinstance.netboxcloud.com
-export NETBOX_TOKEN=your_token_here
+export NETBOX_TOKEN=your_readonly_token
+
+# Main overview diagram (default)
 python scripts/generate_diagram.py
+
+# With cluster detail diagrams
+python scripts/generate_diagram.py --cluster-diagrams
+
+# Single cluster only
+python scripts/generate_diagram.py --cluster hau-hypcl01
+
+# Expand cluster boxes to individual nodes
+python scripts/generate_diagram.py --no-simplify
+
+# Skip main diagram, only generate cluster diagrams
+python scripts/generate_diagram.py --no-main-diagram --cluster-diagrams
 ```
+
+---
+
+## Netbox Tag Setup
+
+Create these tags once under **Extras → Tags** in Netbox:
+
+| Tag slug | Effect |
+|----------|--------|
+| `diagram-public` | Device/VM appears in **Public Infrastructure** zone |
+| `diagram-homelab` | Device appears in **Home Lab** zone |
+| `diagram-exclude` | Device is always excluded from diagrams |
+| `diagram-no-vms` | Device's cluster VMs are not shown as children |
+
+Devices can have both `diagram-public` and `diagram-homelab` to appear in both zones (e.g. a VPN gateway).
+
+---
 
 ## Impressum
 
-Update the placeholder fields in `index.html` (search for `[Vorname Nachname]`, 
-`[Straße Hausnummer]`, `[PLZ Ort]`, `mail@example.com`) before publishing.
+Edit `data/impressum.json` to update the legal contact information.
+This file is loaded at runtime by the `<site-impressum>` web component — `assets/components.js` never needs to be changed for contact data updates.
+
+---
+
+## Secrets
+
+Add under **Settings → Secrets and variables → Actions** (Repository or Organisation level):
+
+| Secret | Description |
+|--------|-------------|
+| `NETBOX_URL` | `https://yourinstance.netboxcloud.com` |
+| `NETBOX_TOKEN` | Read-only API token |
+
+---
+
+## Tech Stack
+
+- **Hosting:** GitHub Pages (static)
+- **Styles:** Vanilla CSS with CSS custom properties (`assets/style.css`)
+- **Components:** Native Web Components — no framework, no build step (`assets/components.js`)
+- **Diagrams:** Python + Netbox REST API → SVG (generated by GitHub Actions)
+- **Data:** Static JSON files in `data/` loaded client-side via `fetch()`

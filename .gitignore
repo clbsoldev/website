@@ -1,0 +1,49 @@
+# ── macOS ──────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+
+# ── Windows ─────────────────────────────────────────────────────────────────
+Thumbs.db
+Thumbs.db:encdata
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ── Linux ────────────────────────────────────────────────────────────────────
+*~
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# ── Editor / IDE ─────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.kate-swp
+
+# ── Generated assets (committed by GitHub Actions, not manually) ─────────────
+# Uncomment if you want to prevent accidental local commits of generated files:
+# assets/diagram*.svg
+# assets/diagram*.png
+# assets/diagram_meta.json
+
+# ── Local secrets / env ───────────────────────────────────────────────────────
+.env
+.env.local
+*.env
