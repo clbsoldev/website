@@ -68,8 +68,7 @@
               Diagram not yet generated — run the Action with
               <code>--cluster ${cl.name}</code>
             </div>
-          </div>
-          ${nodesHtml ? `<div class="cluster-nodes">${nodesHtml}</div>` : ''}`;
+          </div>`;
 
         grid.appendChild(section);
       });

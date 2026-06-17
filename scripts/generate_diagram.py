@@ -1261,7 +1261,7 @@ def build_cluster_svg(
         return ccx, y + VMH//2
 
     # ── Heights ───────────────────────────────────────────────────────────────
-    HDR   = 60    # title bar
+    HDR   = 36    # title bar — minimal label only
     VGAP2 = 40
 
     ctx_y   = HDR + 20
@@ -1285,15 +1285,13 @@ def build_cluster_svg(
       f'font-family="IBM Plex Mono, monospace">')
     a(f'<rect width="{W}" height="{H}" fill="{C["bg"]}"/>')
 
-    # Title bar
+    # Title bar — minimal, just a label since name/desc shown in HTML above
     a(f'<rect x="0" y="0" width="{W}" height="{HDR}" fill="{C["surface"]}"/>')
-    a(f'<text x="{PAD}" y="28" fill="{C["acc"]}" font-size="11" '
-      f'font-weight="600" letter-spacing="1">{_xml(cluster_name)}</text>')
-    if cluster_desc:
-        a(f'<text x="{PAD}" y="46" fill="{C["dim"]}" font-size="8">'
-          f'{_xml(cluster_desc)}</text>')
-    a(f'<text x="{W-PAD}" y="28" text-anchor="end" fill="{C["dim"]}" '
-      f'font-size="7" letter-spacing="1">CLUSTER DETAIL VIEW</text>')
+    a(f'<text x="{PAD}" y="{HDR//2 + 4}" fill="{C["dim"]}" '
+      f'font-size="8" letter-spacing="2">CLUSTER DETAIL VIEW</text>')
+    a(f'<text x="{W-PAD}" y="{HDR//2 + 4}" text-anchor="end" '
+      f'fill="{C["acc"]}" font-size="8" font-weight="600" letter-spacing="1">'
+      f'{_xml(cluster_name)}</text>')
     a(f'<line x1="0" y1="{HDR}" x2="{W}" y2="{HDR}" '
       f'stroke="{C["border"]}" stroke-width="1"/>')
 
