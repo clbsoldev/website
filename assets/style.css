@@ -212,7 +212,7 @@ h2 {
 .badge.hi { border-color: var(--accent2); color: var(--accent); }
 
 /* ── NAMING PAGE ── */
-.page { max-width: 900px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+.page { max-width: 960px; margin: 0 auto; padding: 4rem 2rem 6rem; }
 .schema {
   background: var(--surface); border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
