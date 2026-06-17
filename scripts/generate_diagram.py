@@ -1263,40 +1263,32 @@ def build_cluster_svg(
               f'fill="{C["dim"]}" font-size="7">{dl}</text>')
         return ccx, y + VMH//2
 
-    # ── Heights ───────────────────────────────────────────────────────────────
-    HDR   = 36    # title bar — minimal label only
+    # ── Layout ────────────────────────────────────────────────────────────────
     VGAP2 = 40
 
-    ctx_y   = HDR + 20
+    ctx_y   = PAD
     ctx_h   = CH if context_nodes else 0
 
-    # Cluster box
+    # Cluster box — width fits snugly around the node cards
     n_nodes  = len(nodes)
-    box_pad  = 14
-    box_lbl  = 26   # label + desc area
-    box_y    = ctx_y + ctx_h + (VGAP2 if context_nodes else 0)
+    box_pad  = 16
+    box_lbl  = 28   # label + desc area at top of box
+    # Natural width: fit all cards with padding; minimum = single card + padding
+    box_w_natural = n_nodes * CW + max(0, n_nodes - 1) * GAP + box_pad * 2
+    # Centre in canvas, never narrower than natural width
+    box_w    = max(box_w_natural, min(ZW, box_w_natural + 60))
+    box_x    = (W - box_w) // 2
     box_h    = box_lbl + box_pad + CH + box_pad
-    box_x    = PAD
-    box_w    = ZW
+    box_y    = ctx_y + ctx_h + (VGAP2 if context_nodes else 0)
 
     vm_y     = box_y + box_h + VGAP2
     vm_h     = VMH if vms else 0
 
-    H = vm_y + vm_h + 40
+    H = vm_y + vm_h + PAD + 8
 
     a(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '
       f'font-family="IBM Plex Mono, monospace">')
     a(f'<rect width="{W}" height="{H}" fill="{C["bg"]}"/>')
-
-    # Title bar — minimal, just a label since name/desc shown in HTML above
-    a(f'<rect x="0" y="0" width="{W}" height="{HDR}" fill="{C["surface"]}"/>')
-    a(f'<text x="{PAD}" y="{HDR//2 + 4}" fill="{C["dim"]}" '
-      f'font-size="8" letter-spacing="2">CLUSTER DETAIL VIEW</text>')
-    a(f'<text x="{W-PAD}" y="{HDR//2 + 4}" text-anchor="end" '
-      f'fill="{C["acc"]}" font-size="8" font-weight="600" letter-spacing="1">'
-      f'{_xml(cluster_name)}</text>')
-    a(f'<line x1="0" y1="{HDR}" x2="{W}" y2="{HDR}" '
-      f'stroke="{C["border"]}" stroke-width="1"/>')
 
     # Context nodes (ToR switches etc.)
     if context_nodes:
@@ -1308,40 +1300,49 @@ def build_cluster_svg(
             pos_index[cn["name"]] = (ccx, ccy)
 
     # Cluster box
+    box_cx = box_x + box_w // 2
     a(f'<rect x="{box_x}" y="{box_y}" width="{box_w}" height="{box_h}" rx="3" '
       f'fill="none" stroke="{C["lab"]}" stroke-width="1.5" stroke-dasharray="4,3"/>')
-    a(f'<text x="{box_x + box_w//2}" y="{box_y + 16}" text-anchor="middle" '
+    a(f'<text x="{box_cx}" y="{box_y + 18}" text-anchor="middle" '
       f'fill="{C["head"]}" font-size="10" font-weight="600" letter-spacing="0.5">'
       f'{_xml(cluster_name)}</text>')
     if cluster_desc:
-        a(f'<text x="{box_x + box_w//2}" y="{box_y + 28}" text-anchor="middle" '
+        a(f'<text x="{box_cx}" y="{box_y + 30}" text-anchor="middle" '
           f'fill="{C["dim"]}" font-size="7">{_xml(cluster_desc)}</text>')
 
     # Cluster member cards
-    node_xs = _xs(n_nodes, box_x + box_pad, box_w - box_pad*2, CW, GAP)
+    node_xs = _xs(n_nodes, box_x + box_pad, box_w - box_pad * 2, CW, GAP)
     node_y  = box_y + box_lbl + box_pad
+
+    # Build parent→children map so we draw one line per UNIQUE parent
+    parent_to_nodes: dict[str, list[tuple[int,int]]] = {}
+    for j, node in enumerate(nodes):
+        pname = node.get("_parent")
+        if not pname:
+            pname = context_nodes[0]["name"] if context_nodes else None
+        if pname:
+            parent_to_nodes.setdefault(pname, [])
+
     for j, node in enumerate(nodes):
         bdr = C["lab"] if node.get("status","active") == "active" else C["off"]
         ccx, ccy = _card(node_xs[j], node_y, node["name"],
                          node.get("description",""), bdr)
         pos_index[node["name"]] = (ccx, ccy)
-
-        # Line: from bottom-centre of the correct context node → top of this node card
         pname = node.get("_parent")
-        if pname and pname in pos_index:
-            px, py = pos_index[pname]
-            # py is card center → bottom edge = py + CH//2
+        if not pname and context_nodes:
+            pname = context_nodes[0]["name"]
+        if pname:
+            parent_to_nodes.setdefault(pname, []).append((ccx, node_y))
+
+    # Draw one line per node from its parent's bottom edge to the node's top edge
+    for pname, child_positions in parent_to_nodes.items():
+        if pname not in pos_index:
+            continue
+        px, py = pos_index[pname]
+        for ccx, cy_top in child_positions:
             conn_lines.append(
                 f'<line x1="{px}" y1="{py + CH//2}" '
-                f'x2="{ccx}" y2="{node_y}" '
-                f'stroke="{C["cable"]}" stroke-width="2" opacity="0.85"/>')
-        elif context_nodes:
-            # No explicit parent — connect from nearest context node
-            ctx_ccx = pos_index[context_nodes[0]["name"]][0]
-            ctx_ccy = pos_index[context_nodes[0]["name"]][1]
-            conn_lines.append(
-                f'<line x1="{ctx_ccx}" y1="{ctx_ccy + CH//2}" '
-                f'x2="{ccx}" y2="{node_y}" '
+                f'x2="{ccx}" y2="{cy_top}" '
                 f'stroke="{C["cable"]}" stroke-width="2" opacity="0.85"/>')
 
     # VMs centred under cluster box
