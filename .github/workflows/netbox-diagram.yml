@@ -70,6 +70,9 @@ jobs:
             if [ -n "${{ github.event.inputs.cluster }}" ]; then
               ARGS="$ARGS --cluster ${{ github.event.inputs.cluster }}"
             fi
+          else
+            # Scheduled and push runs: always generate cluster diagrams
+            ARGS="$ARGS --cluster-diagrams"
           fi
           python scripts/generate_diagram.py $ARGS
 

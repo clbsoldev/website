@@ -106,10 +106,11 @@ OUTPUT_SVG  = "assets/diagram.svg"
 OUTPUT_PNG  = "assets/diagram.png"
 OUTPUT_META = "assets/diagram_meta.json"
 
-TAG_PUBLIC  = "diagram-public"
-TAG_HOMELAB = "diagram-homelab"
-TAG_EXCLUDE = "diagram-exclude"
-TAG_NO_VMS  = "diagram-no-vms"
+TAG_PUBLIC         = "diagram-public"
+TAG_HOMELAB        = "diagram-homelab"
+TAG_EXCLUDE        = "diagram-exclude"
+TAG_NO_VMS         = "diagram-no-vms"
+TAG_CLUSTER_EXCLUDE = "diagram-cluster-exclude"  # skip this cluster in --cluster-diagrams
 
 # ── Static fallback (when Netbox is unreachable / no tagged devices) ──────────
 FALLBACK_PUBLIC: list[dict] = [
@@ -294,6 +295,7 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
                 "name":        cl.get("name") or f"cluster-{cid}",
                 "description": cl.get("description") or "",
                 "notes":       detail_text,
+                "excluded":    TAG_CLUSTER_EXCLUDE in {t.get("slug","") for t in (cl.get("tags") or [])},
             }
 
     # cluster_id → { name, description, notes, vms[] }
@@ -336,11 +338,12 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
         primary = members_sorted[0]
         ci = cluster_info.get(cid, {})
         if not primary["no_vms"]:
-            primary["vms"]             = ci.get("vms", [])
-            primary["cluster_name"]    = ci.get("name", "")
-            primary["cluster_desc"]    = ci.get("description", "")
-            primary["cluster_notes"]   = ci.get("notes", "")
-            primary["cluster_primary"] = True
+            primary["vms"]              = ci.get("vms", [])
+            primary["cluster_name"]     = ci.get("name", "")
+            primary["cluster_desc"]     = ci.get("description", "")
+            primary["cluster_notes"]    = ci.get("notes", "")
+            primary["cluster_excluded"] = ci.get("excluded", False)
+            primary["cluster_primary"]  = True
         for sibling in members_sorted[1:]:
             sibling["cluster_sibling_of"] = primary["name"]
             sibling["cluster_name"]       = ci.get("name", "")
@@ -1448,6 +1451,10 @@ def main() -> None:
             if not cname:
                 continue
             if args.cluster and cname != args.cluster:
+                continue
+            # Skip clusters tagged diagram-cluster-exclude unless explicitly requested
+            if node.get("cluster_excluded") and not args.cluster:
+                print(f"[INFO] Skipping cluster '{cname}' (tagged {TAG_CLUSTER_EXCLUDE})")
                 continue
             if cname not in seen_clusters:
                 seen_clusters[cname] = {
