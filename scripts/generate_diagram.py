@@ -1361,16 +1361,6 @@ def build_cluster_svg(
                 f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
             _vm_card(vm_xs[k], vm_y, vm)
 
-    # Cable lines between context nodes (if any)
-    all_names = set(pos_index.keys())
-    for (na, nb_) in cables:
-        if na in all_names and nb_ in all_names:
-            ax, ay = pos_index[na]
-            bx2, by2 = pos_index[nb_]
-            conn_lines.append(
-                f'<line x1="{ax}" y1="{ay}" x2="{bx2}" y2="{by2}" '
-                f'stroke="{C["cable"]}" stroke-width="2" opacity="0.85"/>')
-
     final: list[str] = svg[:2] + conn_lines + svg[2:]
     final.append('</svg>')
     return "\n".join(final)
