@@ -285,3 +285,98 @@ section { padding: 5rem 2rem; }
 .delay-2  { animation-delay: .25s; }
 .delay-3  { animation-delay: .4s; }
 .delay-4  { animation-delay: .55s; }
+
+/* ── CLUSTERS PAGE ── */
+.cluster-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+.cluster-section {
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.cluster-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.cluster-title {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-head);
+  letter-spacing: .02em;
+  margin: 0 0 .2rem 0;
+}
+.cluster-desc {
+  font-size: .82rem;
+  color: var(--text-dim);
+  margin-top: .2rem;
+}
+.cluster-notes {
+  font-size: .85rem;
+  color: var(--text);
+  margin-top: .6rem;
+  line-height: 1.7;
+  max-width: 600px;
+  white-space: pre-wrap;
+}
+.cluster-badges {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.cluster-diagram {
+  padding: 1.5rem;
+  text-align: center;
+  background: var(--bg);
+}
+.cluster-diagram img {
+  max-width: 100%;
+  display: block;
+  margin: 0 auto;
+}
+.cluster-diagram .no-diagram {
+  font-family: var(--mono);
+  font-size: .8rem;
+  color: var(--text-dim);
+  padding: 2rem 0;
+}
+.cluster-nodes {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+.node-pill {
+  font-family: var(--mono);
+  font-size: .7rem;
+  color: var(--text-dim);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: .2rem .6rem;
+  border-radius: 2px;
+}
+.generate-hint {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--orange);
+  padding: 1rem 1.25rem;
+  font-size: .85rem;
+  color: var(--text-dim);
+  margin-bottom: 2rem;
+}
+.generate-hint strong { color: var(--text); }
+.generate-hint code {
+  font-family: var(--mono);
+  font-size: .8rem;
+  color: var(--accent);
+}
+#meta-ts { color: var(--accent2); }

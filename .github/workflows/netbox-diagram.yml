@@ -4,14 +4,23 @@ on:
   # Run every Monday 18:00 UTC
   schedule:
     - cron: '0 18 * * 1'
- 
+
   # Trigger on push when the diagram script changes
   push:
     paths:
       - 'scripts/generate_diagram.py'
- 
+
   # Manual trigger from Actions UI
   workflow_dispatch:
+    inputs:
+      cluster_diagrams:
+        description: 'Generate cluster detail diagrams'
+        type: boolean
+        default: false
+      cluster:
+        description: 'Single cluster name (leave empty for all)'
+        type: string
+        default: ''
 
 permissions:
   contents: write           # Required to commit diagram back to repo
@@ -50,7 +59,19 @@ jobs:
         env:
           NETBOX_URL:   ${{ secrets.NETBOX_URL }}
           NETBOX_TOKEN: ${{ secrets.NETBOX_TOKEN }}
-        run: python scripts/generate_diagram.py
+        run: |
+          ARGS=""
+          # Scheduled and push runs: keep default simplify (cluster boxes)
+          # Manual run: respect inputs
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.cluster_diagrams }}" = "true" ]; then
+              ARGS="$ARGS --cluster-diagrams"
+            fi
+            if [ -n "${{ github.event.inputs.cluster }}" ]; then
+              ARGS="$ARGS --cluster ${{ github.event.inputs.cluster }}"
+            fi
+          fi
+          python scripts/generate_diagram.py $ARGS
 
       # ── 6. Check for changes ──────────────────────────────────────────────────
       - name: Check for diagram changes

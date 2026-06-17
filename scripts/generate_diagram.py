@@ -262,12 +262,20 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
     for cl in raw_clusters:
         cid = cl.get("id")
         if cid:
+            # custom_fields: look for a field named 'diagram_notes' or 'notes'
+            cf = cl.get("custom_fields") or {}
+            notes = cf.get("diagram_notes") or cf.get("notes") or ""
+            # comments is a Netbox free-text field (may contain Markdown)
+            comments = cl.get("comments") or ""
+            # Prefer custom_field notes, fall back to comments
+            detail_text = notes if notes else comments
             cluster_details[cid] = {
                 "name":        cl.get("name") or f"cluster-{cid}",
                 "description": cl.get("description") or "",
+                "notes":       detail_text,
             }
 
-    # cluster_id → { name, description, vms[] }
+    # cluster_id → { name, description, notes, vms[] }
     cluster_info: dict[int, dict] = {}
     for vm in raw_all_vm:
         cid   = (vm.get("cluster") or {}).get("id")
@@ -280,6 +288,7 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
                     cluster_info[cid] = {
                         "name":        det.get("name") or cname,
                         "description": det.get("description") or "",
+                        "notes":       det.get("notes") or "",
                         "vms":         [],
                     }
                 cluster_info[cid]["vms"].append({
@@ -309,6 +318,7 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
             primary["vms"]             = ci.get("vms", [])
             primary["cluster_name"]    = ci.get("name", "")
             primary["cluster_desc"]    = ci.get("description", "")
+            primary["cluster_notes"]   = ci.get("notes", "")
             primary["cluster_primary"] = True
         for sibling in members_sorted[1:]:
             sibling["cluster_sibling_of"] = primary["name"]
@@ -439,6 +449,16 @@ def _topo_sort(
     for name in node_map:
         if name not in level_of:
             level_of[name] = max_level + 1
+
+    # Force cluster siblings onto the same level as their cluster primary
+    # (hyp03 may have no cable to hyp01/02 but belongs in the same cluster box)
+    for node in nodes:
+        sibling_of = node.get("cluster_sibling_of")
+        if sibling_of and sibling_of in level_of:
+            level_of[node["name"]] = level_of[sibling_of]
+            # Also inherit parent from primary so layout places them together
+            if "_parent" in node_map.get(sibling_of, {}):
+                node["_parent"] = node_map[sibling_of].get("_parent")
 
     # Stamp level onto each node dict for the renderer
     for node in nodes:
@@ -578,8 +598,13 @@ def _item_width(item: dict) -> int:
     return len(members) * DW + (len(members) - 1) * HGAP + CLUSTER_PAD * 2
 
 
-def _build_items(row: list[dict]) -> list[dict]:
-    """Convert a topo row into render items (solo | cluster)."""
+def _build_items(row: list[dict], simplify: bool = True) -> list[dict]:
+    """Convert a topo row into render items (solo | cluster).
+    When simplify=False, all nodes are rendered as solo cards (no cluster box)."""
+    if not simplify:
+        items = [{"type": "solo", "nodes": [node]} for node in row]
+        items.sort(key=lambda it: it["nodes"][0]["name"])
+        return items
     cluster_groups: dict[int, list[dict]] = {}
     solo: list[dict] = []
     for node in row:
@@ -594,7 +619,6 @@ def _build_items(row: list[dict]) -> list[dict]:
     for cid, members in cluster_groups.items():
         ms = sorted(members, key=lambda n: n["name"])
         items.append({"type": "cluster", "nodes": ms, "cid": cid})
-    # Preserve original order by first node name
     items.sort(key=lambda it: it["nodes"][0]["name"])
     return items
 
@@ -722,45 +746,46 @@ def _assign_x_positions(
                     for node in it["nodes"]:
                         name_cx[node["name"]] = icx
 
-    # ── Bottom-up pass: re-centre parents over their children ─────────────────
-    # If a parent has only one child group (or all children fall under one
-    # parent), shift the parent to the midpoint of its children's extents.
-    # We do this for every row from the bottom up (reversed).
-    # Build: node_name → item (for position updates)
-    name_to_item: dict[str, dict] = {}
-    for row_items in rows_items:
-        for it in row_items:
-            for node in it["nodes"]:
-                name_to_item[node["name"]] = it
-
+    # ── Bottom-up pass: re-centre parents over their single child ────────────
+    # Only applies when a parent node is the sole occupant on its side AND
+    # has exactly one child item — e.g. USW-Lite over MGMT-Pi-Home.
+    # Skip if the parent shares its row with siblings that have their own
+    # children (moving it would break the sibling spacing).
     for row_idx in range(len(rows_items) - 2, -1, -1):
         parent_row = rows_items[row_idx]
         child_row  = rows_items[row_idx + 1] if row_idx + 1 < len(rows_items) else []
 
-        # Build: parent_name → list of child item centres
-        parent_child_cxs: dict[str, list[int]] = {}
+        # Build: parent_name → list of (child_left, child_right) spans
+        parent_child_spans: dict[str, list[tuple[int,int]]] = {}
         for it in child_row:
             pname = it["nodes"][0].get("_parent")
             if pname and pname in name_cx:
-                child_cx = it.get("_cx", name_cx.get(it["nodes"][0]["name"], 0))
-                child_w  = it.get("_w", _item_width(it))
-                # Use the full span of the child item
-                parent_child_cxs.setdefault(pname, [])
-                parent_child_cxs[pname].append((child_cx - child_w//2, child_cx + child_w//2))
+                cw = it.get("_w", _item_width(it))
+                ccx = it.get("_cx", name_cx.get(it["nodes"][0]["name"], 0))
+                parent_child_spans.setdefault(pname, []).append(
+                    (ccx - cw // 2, ccx + cw // 2)
+                )
+
+        # Count how many parents in this row have children
+        parents_with_children = [
+            it for it in parent_row
+            if any(n["name"] in parent_child_spans for n in it["nodes"])
+        ]
 
         for it in parent_row:
             for node in it["nodes"]:
-                spans = parent_child_cxs.get(node["name"], [])
-                if not spans:
+                spans = parent_child_spans.get(node["name"], [])
+                if len(spans) != 1:
+                    continue  # only move parents with exactly one child item
+                # Only move if this parent is the sole parent with children on
+                # this side, i.e. no sibling parent is competing for same space
+                # Heuristic: skip if >2 parents with children exist in this row
+                if len(parents_with_children) > 2:
                     continue
-                child_left  = min(s[0] for s in spans)
-                child_right = max(s[1] for s in spans)
+                child_left, child_right = spans[0]
                 new_cx = (child_left + child_right) // 2
-                # Only shift if this parent has a single child group
-                # (multi-child parents are already well-placed by the top-down pass)
-                if len(spans) == 1:
-                    it["_cx"] = new_cx
-                    name_cx[node["name"]] = new_cx
+                it["_cx"] = new_cx
+                name_cx[node["name"]] = new_cx
 
     return name_cx
 
@@ -790,11 +815,12 @@ def _zone_h_lab(nodes: list[dict]) -> int:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_svg(
-    saas:    list[dict],
-    pub:     list[dict],
-    lab:     list[dict],
-    cables:  list[tuple[str, str]],
-    tunnels: list[tuple[str, str, str, str]],
+    saas:     list[dict],
+    pub:      list[dict],
+    lab:      list[dict],
+    cables:   list[tuple[str, str]],
+    tunnels:  list[tuple[str, str, str, str]],
+    simplify: bool = True,   # True = cluster boxes; False = individual nodes (--no-simplify)
 ) -> str:
     W = 1100
 
@@ -944,7 +970,8 @@ def build_svg(
 
     if lab:
         rows       = _lab_rows(lab, zone_w=LAB_W)
-        rows_items = [_build_items(row) for row in rows]
+        # When simplify=False, treat every node as solo (no cluster boxes)
+        rows_items = [_build_items(row, simplify=simplify) for row in rows]
         zone_cx    = ZONE_PAD + LAB_W // 2
 
         name_cx = _assign_x_positions(rows_items, zone_cx,
@@ -1135,7 +1162,223 @@ def build_svg(
     return "\n".join(final_svg)
 
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  Cluster diagram builder
+# ══════════════════════════════════════════════════════════════════════════════
+
+def build_cluster_svg(
+    cluster_name: str,
+    cluster_desc: str,
+    nodes:        list[dict],   # cluster member devices
+    vms:          list[dict],   # VMs belonging to this cluster
+    context_nodes: list[dict],  # switches/parents the nodes connect to
+    cables:       list[tuple[str,str]],
+) -> str:
+    """
+    Dedicated diagram for a single cluster.
+    Layout:
+      Row 0: context nodes (ToR switches etc.)
+      Row 1: cluster member devices (inside a cluster box)
+      Row 2: VMs
+    """
+    W, PAD = 960, 32
+    ZW = W - 2 * PAD
+
+    # Card sizes — slightly larger for readability in dedicated view
+    CW, CH   = 190, 80
+    VMW, VMH = 160, 50
+    GAP      = 18
+
+    svg: list[str] = []
+    a = svg.append
+    conn_lines: list[str] = []
+    pos_index: dict[str, tuple[int,int]] = {}
+
+    def _xs(count: int, zone_x: int, zone_w: int, cw: int, gap: int) -> list[int]:
+        total = count * cw + max(0, count-1) * gap
+        x0 = zone_x + max(0, (zone_w - total) // 2)
+        return [x0 + i*(cw+gap) for i in range(count)]
+
+    def _card(x, y, name, desc, bdr, cw=CW, ch=CH):
+        ccx, ccy = x + cw//2, y + ch//2
+        a(f'<rect x="{x}" y="{y}" width="{cw}" height="{ch}" rx="2" '
+          f'fill="{C["bg"]}" stroke="{bdr}" stroke-width="1"/>')
+        nls = _wrap(name, 22)[:2]
+        dls = _desc_lines(desc, 32)
+        nh  = len(nls) * 13
+        th  = nh + (len(dls)*11 + 4 if dls else 0)
+        sy  = y + max(10, (ch-th)//2 + 11)
+        for j, ln in enumerate(nls):
+            a(f'<text x="{ccx}" y="{sy+j*13}" text-anchor="middle" '
+              f'fill="{C["head"]}" font-size="10" font-weight="600">{ln}</text>')
+        dy2 = sy + nh + 4
+        for j, dl in enumerate(dls):
+            if dy2 + j*11 < y + ch - 4:
+                a(f'<text x="{ccx}" y="{dy2+j*11}" text-anchor="middle" '
+                  f'fill="{C["dim"]}" font-size="7">{dl}</text>')
+        return ccx, ccy
+
+    def _vm_card(x, y, vm):
+        ccx = x + VMW//2
+        status = vm.get("status", "active")
+        bdr    = C["lab"] if status == "active" else C["off"]
+        a(f'<rect x="{x}" y="{y}" width="{VMW}" height="{VMH}" rx="2" '
+          f'fill="{C["vm_bg"]}" stroke="{bdr}" stroke-width="1" stroke-dasharray="2,2"/>')
+        nls = _wrap(vm["name"], 20)[:2]
+        dls = _desc_lines(vm.get("description",""), 24)
+        nh  = len(nls)*12
+        th  = nh + (len(dls)*10+3 if dls else 0)
+        sy  = y + max(8, (VMH-th)//2 + 10)
+        for j, ln in enumerate(nls):
+            a(f'<text x="{ccx}" y="{sy+j*12}" text-anchor="middle" '
+              f'fill="{C["head"]}" font-size="9" font-weight="600">{ln}</text>')
+        dy2 = sy + nh + 3
+        for j, dl in enumerate(dls):
+            a(f'<text x="{ccx}" y="{dy2+j*10}" text-anchor="middle" '
+              f'fill="{C["dim"]}" font-size="7">{dl}</text>')
+        return ccx, y + VMH//2
+
+    # ── Heights ───────────────────────────────────────────────────────────────
+    HDR   = 60    # title bar
+    VGAP2 = 40
+
+    ctx_y   = HDR + 20
+    ctx_h   = CH if context_nodes else 0
+
+    # Cluster box
+    n_nodes  = len(nodes)
+    box_pad  = 14
+    box_lbl  = 26   # label + desc area
+    box_y    = ctx_y + ctx_h + (VGAP2 if context_nodes else 0)
+    box_h    = box_lbl + box_pad + CH + box_pad
+    box_x    = PAD
+    box_w    = ZW
+
+    vm_y     = box_y + box_h + VGAP2
+    vm_h     = VMH if vms else 0
+
+    H = vm_y + vm_h + 40
+
+    a(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" '
+      f'font-family="IBM Plex Mono, monospace">')
+    a(f'<rect width="{W}" height="{H}" fill="{C["bg"]}"/>')
+
+    # Title bar
+    a(f'<rect x="0" y="0" width="{W}" height="{HDR}" fill="{C["surface"]}"/>')
+    a(f'<text x="{PAD}" y="28" fill="{C["acc"]}" font-size="11" '
+      f'font-weight="600" letter-spacing="1">{_xml(cluster_name)}</text>')
+    if cluster_desc:
+        a(f'<text x="{PAD}" y="46" fill="{C["dim"]}" font-size="8">'
+          f'{_xml(cluster_desc)}</text>')
+    a(f'<text x="{W-PAD}" y="28" text-anchor="end" fill="{C["dim"]}" '
+      f'font-size="7" letter-spacing="1">CLUSTER DETAIL VIEW</text>')
+    a(f'<line x1="0" y1="{HDR}" x2="{W}" y2="{HDR}" '
+      f'stroke="{C["border"]}" stroke-width="1"/>')
+
+    # Context nodes (ToR switches etc.)
+    if context_nodes:
+        ctx_xs = _xs(len(context_nodes), PAD, ZW, CW, GAP)
+        for j, cn in enumerate(context_nodes):
+            bdr = C["pub"] if cn.get("source") == "vm" else C["lab"]
+            ccx, ccy = _card(ctx_xs[j], ctx_y, cn["name"],
+                              cn.get("description",""), bdr)
+            pos_index[cn["name"]] = (ccx, ccy)
+
+    # Cluster box
+    a(f'<rect x="{box_x}" y="{box_y}" width="{box_w}" height="{box_h}" rx="3" '
+      f'fill="none" stroke="{C["lab"]}" stroke-width="1.5" stroke-dasharray="4,3"/>')
+    a(f'<text x="{box_x + box_w//2}" y="{box_y + 16}" text-anchor="middle" '
+      f'fill="{C["head"]}" font-size="10" font-weight="600" letter-spacing="0.5">'
+      f'{_xml(cluster_name)}</text>')
+    if cluster_desc:
+        a(f'<text x="{box_x + box_w//2}" y="{box_y + 28}" text-anchor="middle" '
+          f'fill="{C["dim"]}" font-size="7">{_xml(cluster_desc)}</text>')
+
+    # Cluster member cards
+    node_xs = _xs(n_nodes, box_x + box_pad, box_w - box_pad*2, CW, GAP)
+    node_y  = box_y + box_lbl + box_pad
+    for j, node in enumerate(nodes):
+        bdr = C["lab"] if node.get("status","active") == "active" else C["off"]
+        ccx, ccy = _card(node_xs[j], node_y, node["name"],
+                         node.get("description",""), bdr)
+        pos_index[node["name"]] = (ccx, ccy)
+
+        # Line from context node to cluster member
+        pname = node.get("_parent")
+        if pname and pname in pos_index:
+            px, py = pos_index[pname]
+            conn_lines.append(
+                f'<line x1="{px}" y1="{py + CH//2}" '
+                f'x2="{ccx}" y2="{box_y}" '
+                f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.8"/>')
+
+    # VMs centred under cluster box
+    if vms:
+        box_cx  = box_x + box_w//2
+        box_bot = box_y + box_h
+        vm_xs   = _xs(len(vms), PAD, ZW, VMW, GAP)
+        conn_lines.append(
+            f'<line x1="{box_cx}" y1="{box_bot}" x2="{box_cx}" y2="{vm_y}" '
+            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+        for k, vm in enumerate(vms):
+            vcx = vm_xs[k] + VMW//2
+            conn_lines.append(
+                f'<line x1="{box_cx}" y1="{vm_y}" '
+                f'x2="{vcx}" y2="{vm_y}" '
+                f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+            _vm_card(vm_xs[k], vm_y, vm)
+
+    # Cable lines between context nodes (if any)
+    all_names = set(pos_index.keys())
+    for (na, nb_) in cables:
+        if na in all_names and nb_ in all_names:
+            ax, ay = pos_index[na]
+            bx2, by2 = pos_index[nb_]
+            conn_lines.append(
+                f'<line x1="{ax}" y1="{ay}" x2="{bx2}" y2="{by2}" '
+                f'stroke="{C["cable"]}" stroke-width="1.5" opacity="0.6"/>')
+
+    final: list[str] = svg[:2] + conn_lines + svg[2:]
+    final.append('</svg>')
+    return "\n".join(final)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  Main
+# ══════════════════════════════════════════════════════════════════════════════
+
 def main() -> None:
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Generate network diagram(s) from Netbox"
+    )
+    parser.add_argument(
+        "--cluster-diagrams", action="store_true",
+        help="Generate a separate SVG/PNG for each Proxmox/virtualisation cluster"
+    )
+    parser.add_argument(
+        "--cluster", metavar="NAME",
+        help="Generate diagram only for this cluster name (implies --cluster-diagrams)"
+    )
+    parser.add_argument(
+        "--no-simplify", action="store_true",
+        help="In the main diagram, expand cluster boxes to show individual nodes "
+             "instead of a grouped box (default: simplified/boxed)"
+    )
+    parser.add_argument(
+        "--main-diagram", action="store_true", default=True,
+        help="Generate the main overview diagram (default: on)"
+    )
+    parser.add_argument(
+        "--no-main-diagram", action="store_false", dest="main_diagram",
+        help="Skip the main overview diagram"
+    )
+    args = parser.parse_args()
+
+    if args.cluster:
+        args.cluster_diagrams = True
+
     pub, lab, cables, tunnels, raw_count = fetch_all()
     now    = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     source = "netbox"
@@ -1144,24 +1387,96 @@ def main() -> None:
         print("[WARN] No tagged devices – using static fallback.")
         pub, lab, cables = FALLBACK_PUBLIC, FALLBACK_HOMELAB, []
         tunnels = LOGICAL_TUNNELS_FALLBACK
-        source = "static"
+        source  = "static"
 
     total_vms = sum(len(n.get("vms", [])) for n in lab)
     os.makedirs("assets", exist_ok=True)
 
-    svg_str = build_svg(SAAS_NODES, pub, lab, cables, tunnels)
-    with open(OUTPUT_SVG, "w", encoding="utf-8") as f:
-        f.write(svg_str)
-    print(f"[OK] {OUTPUT_SVG}  saas={len(SAAS_NODES)}  pub={len(pub)}  lab={len(lab)}  "
-          f"vms={total_vms}  cables={len(cables)}  tunnels={len(tunnels)}")
+    # ── Main overview diagram ──────────────────────────────────────────────────
+    cluster_meta: list[dict] = []
 
-    try:
-        import cairosvg
-        cairosvg.svg2png(url=OUTPUT_SVG, write_to=OUTPUT_PNG, output_width=1920)
-        print(f"[OK] {OUTPUT_PNG}")
-    except ImportError:
-        print("[INFO] cairosvg not available – PNG skipped.")
+    if args.main_diagram:
+        svg_str = build_svg(SAAS_NODES, pub, lab, cables, tunnels,
+                            simplify=not args.no_simplify)
+        with open(OUTPUT_SVG, "w", encoding="utf-8") as f:
+            f.write(svg_str)
+        print(f"[OK] {OUTPUT_SVG}  saas={len(SAAS_NODES)}  pub={len(pub)}  "
+              f"lab={len(lab)}  vms={total_vms}  cables={len(cables)}")
+        try:
+            import cairosvg
+            cairosvg.svg2png(url=OUTPUT_SVG, write_to=OUTPUT_PNG, output_width=1920)
+            print(f"[OK] {OUTPUT_PNG}")
+        except ImportError:
+            print("[INFO] cairosvg not available – PNG skipped.")
 
+    # ── Cluster detail diagrams ────────────────────────────────────────────────
+    if args.cluster_diagrams:
+        # Collect all clusters from lab nodes
+        seen_clusters: dict[str, dict] = {}
+        node_by_name: dict[str, dict] = {n["name"]: n for n in lab}
+
+        for node in lab:
+            cname = node.get("cluster_name", "")
+            if not cname:
+                continue
+            if args.cluster and cname != args.cluster:
+                continue
+            if cname not in seen_clusters:
+                seen_clusters[cname] = {
+                    "name":  cname,
+                    "desc":  node.get("cluster_desc", ""),
+                    "notes": node.get("cluster_notes", ""),
+                    "nodes": [],
+                    "vms":   node.get("vms", []) if node.get("cluster_primary") else [],
+                }
+            seen_clusters[cname]["nodes"].append(node)
+
+        for cname, cdata in seen_clusters.items():
+            # Find context nodes: direct parents of cluster members
+            context_names: set[str] = set()
+            for node in cdata["nodes"]:
+                p = node.get("_parent")
+                if p and p in node_by_name:
+                    context_names.add(p)
+            context_nodes = [node_by_name[n] for n in sorted(context_names)
+                             if n in node_by_name]
+
+            safe_name = cname.lower().replace(" ", "-").replace("/", "-")
+            out_svg   = f"assets/diagram-cluster-{safe_name}.svg"
+            out_png   = f"assets/diagram-cluster-{safe_name}.png"
+
+            svg_str = build_cluster_svg(
+                cluster_name  = cname,
+                cluster_desc  = cdata["desc"],
+                nodes         = sorted(cdata["nodes"], key=lambda n: n["name"]),
+                vms           = cdata["vms"],
+                context_nodes = context_nodes,
+                cables        = cables,
+            )
+            with open(out_svg, "w", encoding="utf-8") as f:
+                f.write(svg_str)
+            print(f"[OK] {out_svg}  nodes={len(cdata['nodes'])}  "
+                  f"vms={len(cdata['vms'])}  context={len(context_nodes)}")
+
+            try:
+                import cairosvg
+                cairosvg.svg2png(url=out_svg, write_to=out_png, output_width=1920)
+                print(f"[OK] {out_png}")
+            except ImportError:
+                pass
+
+            cluster_meta.append({
+                "name":         cname,
+                "description":  cdata["desc"],
+                "notes":        cdata.get("notes", ""),
+                "node_count":   len(cdata["nodes"]),
+                "nodes":        [n["name"] for n in cdata["nodes"]],
+                "vm_count":     len(cdata["vms"]),
+                "svg":          out_svg,
+                "png":          out_png,
+            })
+
+    # ── Meta JSON ──────────────────────────────────────────────────────────────
     meta = {
         "generated_at":   now,
         "source":         source,
@@ -1173,6 +1488,7 @@ def main() -> None:
         "cable_count":    len(cables),
         "tunnel_count":   len(tunnels),
         "tunnel_source":  "netbox" if tunnels and tunnels is not LOGICAL_TUNNELS_FALLBACK else "fallback",
+        "clusters":       cluster_meta,
         "filter_tags": {
             "public":  TAG_PUBLIC,
             "homelab": TAG_HOMELAB,
