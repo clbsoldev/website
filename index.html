@@ -48,42 +48,44 @@
 <!-- ABOUT -->
 <section id="about">
   <div class="section-inner">
-    <div class="section-label">Purpose &amp; Goals</div>
-    <h2>What is this lab for?</h2>
-    <p class="section-lead">
-      A real-world test platform close to actual customer scenarios —
-      completely separate from any production systems.
-    </p>
-    <div class="card-grid">
-      <div class="card">
-        <div class="card-icon">🔬</div>
-        <h3>Webex Feature Evaluation</h3>
-        <p>New Webex features, APIs and beta functionality are tested here before rolling them out in customer projects — especially Hybrid Services (Calendar, Directory, Media) and Cloud Calling.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">🐍</div>
-        <h3>Python, n8n &amp; API Automation</h3>
-        <p>Python scripts for Webex APIs: bot frameworks, webhook handlers and provisioning workflows. n8n for event-driven no-code integrations and Webex automations.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">📞</div>
-        <h3>Telephony &amp; Interop Testing</h3>
-        <p>SIP interoperability tests between Cisco IP Phones, 2N Intercom/Access Manager and Webex Cloud Calling. PSTN gateway scenarios and trunk configurations.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">📡</div>
-        <h3>Monitoring &amp; Operations</h3>
-        <p>Nagios-based monitoring across the entire infrastructure. Passive checks, heartbeats and alerting for all lab components via cron-job.org.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">🏗️</div>
-        <h3>Infrastructure as Code</h3>
-        <p>Ansible (Control Node on RasPi) for reproducible deployments and configuration management. Docker Stacks on Synology NAS. Proxmox cluster as the virtualization backbone.</p>
-      </div>
-      <div class="card">
-        <div class="card-icon">📚</div>
-        <h3>Documentation &amp; PoC</h3>
-        <p>Reproducible proof-of-concept scenarios and technical documentation for partner and customer projects based on real lab configurations.</p>
+    <div class="content-box">
+      <div class="section-label">Purpose &amp; Goals</div>
+      <h2>What is this lab for?</h2>
+      <p class="section-lead">
+        A real-world test platform close to actual customer scenarios —
+        completely separate from any production systems.
+      </p>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🔬</div>
+          <h3>Webex Feature Evaluation</h3>
+          <p>New Webex features, APIs and beta functionality are tested here before rolling them out in customer projects — especially Hybrid Services (Calendar, Directory, Media) and Cloud Calling.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🐍</div>
+          <h3>Python, n8n &amp; API Automation</h3>
+          <p>Python scripts for Webex APIs: bot frameworks, webhook handlers and provisioning workflows. n8n for event-driven no-code integrations and Webex automations.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📞</div>
+          <h3>Telephony &amp; Interop Testing</h3>
+          <p>SIP interoperability tests between Cisco IP Phones, 2N Intercom/Access Manager and Webex Cloud Calling. PSTN gateway scenarios and trunk configurations.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📡</div>
+          <h3>Monitoring &amp; Operations</h3>
+          <p>Nagios-based monitoring across the entire infrastructure. Passive checks, heartbeats and alerting for all lab components via cron-job.org.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏗️</div>
+          <h3>Infrastructure as Code</h3>
+          <p>Ansible (Control Node on RasPi) for reproducible deployments and configuration management. Docker Stacks on Synology NAS. Proxmox cluster as the virtualization backbone.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📚</div>
+          <h3>Documentation &amp; PoC</h3>
+          <p>Reproducible proof-of-concept scenarios and technical documentation for partner and customer projects based on real lab configurations.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -94,35 +96,19 @@
 <!-- IMPRESSUM (German – legally required) -->
 <section id="impressum">
   <div class="section-inner">
-    <div class="section-label">Legal Notice</div>
-    <h2>Impressum</h2>
-    <p class="section-lead">
-      Angaben gemäß § 5 TMG / § 55 RStV. Required by German law.
-    </p>
-    <site-impressum></site-impressum>
+    <div class="content-box">
+      <div class="section-label">Legal Notice</div>
+      <h2>Impressum</h2>
+      <p class="section-lead">
+        Angaben gemäß § 5 TMG / § 55 RStV. Required by German law.
+      </p>
+      <site-impressum></site-impressum>
     </div>
+  </div>
 </section>
 
 <!-- FOOTER -->
 <site-footer></site-footer>
 
-<script>
-  function showDynamic() {
-    const img = document.getElementById('netbox-diagram');
-    const fallback = document.getElementById('static-fallback');
-    if (img && img.naturalWidth > 0) {
-      fallback.style.display = 'none';
-      img.style.display = 'block';
-    }
-  }
-
-  fetch('assets/diagram_meta.json')
-    .then(r => r.ok ? r.json() : null)
-    .then(d => { if (d?.generated_at) document.getElementById('diagram-ts').textContent = d.generated_at; })
-    .catch(() => {});
-
-  const img = document.getElementById('netbox-diagram');
-  if (img) img.src = 'assets/diagram.svg?' + Date.now();
-</script>
 </body>
 </html>

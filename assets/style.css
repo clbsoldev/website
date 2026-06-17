@@ -258,11 +258,19 @@ h2 {
 }
 .callout strong { color: var(--text); }
 
+/* ── CONTENT BOX (replaces full-width section backgrounds) ── */
+.content-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
 /* ── SECTION ── */
 section { padding: 5rem 2rem; }
 .section-inner { max-width: 960px; margin: 0 auto; }
-#about { background: var(--surface); }
-#impressum { background: var(--surface); }
+#about { background: var(--bg); }
+#impressum { background: var(--bg); }
 
 /* ── HERO ── */
 #home {
