@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-17 20:41 UTC",
+  "generated_at": "2026-06-22 20:44 UTC",
   "source": "netbox",
   "saas_count": 3,
   "device_count": 28,
@@ -10,6 +10,18 @@
   "tunnel_count": 1,
   "tunnel_source": "netbox",
   "clusters": [
+    {
+      "name": "DS920+",
+      "description": "",
+      "notes": "",
+      "node_count": 1,
+      "nodes": [
+        "synology-ds920plus"
+      ],
+      "vm_count": 1,
+      "svg": "assets/diagram-cluster-ds920+.svg",
+      "png": "assets/diagram-cluster-ds920+.png"
+    },
     {
       "name": "hau-hypcl01",
       "description": "Proxmox VE Cluster",
