@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-07-13 19:20 UTC",
+  "generated_at": "2026-07-20 19:41 UTC",
   "source": "netbox",
   "saas_count": 3,
-  "device_count": 28,
+  "device_count": 32,
   "pub_nodes": 2,
-  "lab_nodes": 13,
-  "vm_count": 3,
-  "cable_count": 12,
+  "lab_nodes": 14,
+  "vm_count": 4,
+  "cable_count": 13,
   "tunnel_count": 1,
   "tunnel_source": "netbox",
   "clusters": [
@@ -32,7 +32,7 @@
         "hau-hyp02",
         "hau-hyp03"
       ],
-      "vm_count": 2,
+      "vm_count": 3,
       "svg": "assets/diagram-cluster-hau-hypcl01.svg",
       "png": "assets/diagram-cluster-hau-hypcl01.png"
     }

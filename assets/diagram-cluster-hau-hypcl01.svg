@@ -4,8 +4,9 @@
 <line x1="480" y1="112" x2="480" y2="196" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="480" y1="112" x2="688" y2="196" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="480" y1="292" x2="480" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="480" y1="332" x2="391" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="480" y1="332" x2="569" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="480" y1="332" x2="302" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="480" y1="332" x2="480" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="480" y1="332" x2="658" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <rect x="385" y="32" width="190" height="80" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="480" y="63" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600">USW Pro Max 16 PoE</text>
 <text x="480" y="80" text-anchor="middle" fill="#5a7a94" font-size="7">Top of the Rack Switch Home</text>
@@ -22,12 +23,15 @@
 <rect x="593" y="196" width="190" height="80" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
 <text x="688" y="233" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600">hau-hyp03</text>
 <text x="688" y="250" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 3, single Network</text>
-<rect x="311" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="391" y="349" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-lgw01</text>
-<text x="391" y="364" text-anchor="middle" fill="#5a7a94" font-size="7">Webex Calling</text>
-<text x="391" y="374" text-anchor="middle" fill="#5a7a94" font-size="7">Registration Based Local</text>
-<rect x="489" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="569" y="349" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-sgw01</text>
-<text x="569" y="364" text-anchor="middle" fill="#5a7a94" font-size="7">Webex Calling</text>
-<text x="569" y="374" text-anchor="middle" fill="#5a7a94" font-size="7">Survivability Gateway</text>
+<rect x="222" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="302" y="349" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-lgw01</text>
+<text x="302" y="364" text-anchor="middle" fill="#5a7a94" font-size="7">Webex Calling</text>
+<text x="302" y="374" text-anchor="middle" fill="#5a7a94" font-size="7">Registration Based Local</text>
+<rect x="400" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="480" y="354" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-sbc02</text>
+<text x="480" y="369" text-anchor="middle" fill="#5a7a94" font-size="7">AudioCodes Mediant VE HA</text>
+<rect x="578" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="658" y="349" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-sgw01</text>
+<text x="658" y="364" text-anchor="middle" fill="#5a7a94" font-size="7">Webex Calling</text>
+<text x="658" y="374" text-anchor="middle" fill="#5a7a94" font-size="7">Survivability Gateway</text>
 </svg>
