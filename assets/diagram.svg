@@ -87,7 +87,7 @@
 <rect x="234" y="1072" width="566" height="122" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
 <text x="517" y="1092" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600" letter-spacing="0.5">hau-hypcl01</text>
 <text x="517" y="1103" text-anchor="middle" fill="#5a7a94" font-size="6.5">Proxmox VE Cluster</text>
-<rect x="244" y="1112" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<rect x="244" y="1112" width="170" height="72" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
 <text x="329" y="1144" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp01</text>
 <text x="329" y="1161" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 01</text>
 <rect x="432" y="1112" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
