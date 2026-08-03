@@ -13,7 +13,7 @@
 <text x="480" y="91" text-anchor="middle" fill="#5a7a94" font-size="7">Office &amp; Lab</text>
 <rect x="131" y="152" width="698" height="140" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
 <text x="480" y="170" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600" letter-spacing="0.5">hau-hypcl01</text>
-<text x="480" y="182" text-anchor="middle" fill="#5a7a94" font-size="7">Proxmox VE Cluster</text>
+<text x="480" y="182" text-anchor="middle" fill="#5a7a94" font-size="7">non 24x7 running Proxmox VE Cluster</text>
 <rect x="177" y="196" width="190" height="80" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
 <text x="272" y="233" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600">hau-hyp01</text>
 <text x="272" y="250" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 01</text>

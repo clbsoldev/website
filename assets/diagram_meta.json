@@ -1,30 +1,18 @@
 {
-  "generated_at": "2026-07-27 19:24 UTC",
+  "generated_at": "2026-08-03 19:27 UTC",
   "source": "netbox",
   "saas_count": 3,
-  "device_count": 32,
+  "device_count": 34,
   "pub_nodes": 2,
-  "lab_nodes": 14,
-  "vm_count": 4,
-  "cable_count": 13,
+  "lab_nodes": 15,
+  "vm_count": 5,
+  "cable_count": 12,
   "tunnel_count": 1,
   "tunnel_source": "netbox",
   "clusters": [
     {
-      "name": "DS920+",
-      "description": "",
-      "notes": "",
-      "node_count": 1,
-      "nodes": [
-        "synology-ds920plus"
-      ],
-      "vm_count": 1,
-      "svg": "assets/diagram-cluster-ds920+.svg",
-      "png": "assets/diagram-cluster-ds920+.png"
-    },
-    {
       "name": "hau-hypcl01",
-      "description": "Proxmox VE Cluster",
+      "description": "non 24x7 running Proxmox VE Cluster",
       "notes": "Proxmox VE Cluster based on Lenovo M720q tiny",
       "node_count": 3,
       "nodes": [
@@ -35,6 +23,19 @@
       "vm_count": 3,
       "svg": "assets/diagram-cluster-hau-hypcl01.svg",
       "png": "assets/diagram-cluster-hau-hypcl01.png"
+    },
+    {
+      "name": "DS920+",
+      "description": "24x7 running Synology Container Manager & Virtual Maschine Manager",
+      "notes": "",
+      "node_count": 2,
+      "nodes": [
+        "hau-apt01",
+        "synology-ds920plus"
+      ],
+      "vm_count": 2,
+      "svg": "assets/diagram-cluster-ds920+.svg",
+      "png": "assets/diagram-cluster-ds920+.png"
     }
   ],
   "filter_tags": {
