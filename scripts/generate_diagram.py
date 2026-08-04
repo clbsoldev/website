@@ -264,13 +264,19 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
         seen_lab.add(d["name"])
         lab_nodes_raw.append(_make_node(d, tags, source="device"))
 
-    # Also include VMs explicitly tagged diagram-homelab (e.g. a standalone VM
-    # that is not part of a Proxmox cluster visible as a device)
+    # Also include VMs explicitly tagged diagram-homelab ONLY if they are
+    # standalone (no cluster_id). VMs that belong to a cluster are rendered
+    # as children of their cluster host — adding them here would cause duplicates.
     for d in raw_lab_vm:
         tags = _tags(d)
         if TAG_EXCLUDE in tags or d.get("name") in seen_lab:
             continue
-        # Only add if not already a child of a cluster host we have
+        # Skip VMs that belong to a cluster — they appear via cluster_info
+        if (d.get("cluster") or {}).get("id"):
+            print(f"[DEBUG] Skipping VM '{d.get('name')}' from lab_nodes "
+                  f"(belongs to cluster '{(d.get('cluster') or {}).get('name')}' "
+                  f"— rendered as cluster child)")
+            continue
         seen_lab.add(d["name"])
         lab_nodes_raw.append(_make_node(d, tags, source="vm"))
 
@@ -332,10 +338,14 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
             cluster_nodes[node["cluster_id"]].append(node)
 
     # Assign VMs only to the FIRST node of each cluster (alphabetically by name)
-    # Other nodes in the same cluster get vms=[] and a cluster_sibling flag
+    # Prefer physical devices (source="device") over VMs as primary
     for cid, members in cluster_nodes.items():
         members_sorted = sorted(members, key=lambda n: n["name"])
-        primary = members_sorted[0]
+        # Pick first physical device as primary; fall back to first VM if no device found
+        primary = next(
+            (n for n in members_sorted if n.get("source") == "device"),
+            members_sorted[0]
+        )
         ci = cluster_info.get(cid, {})
         if not primary["no_vms"]:
             primary["vms"]              = ci.get("vms", [])
@@ -344,7 +354,9 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
             primary["cluster_notes"]    = ci.get("notes", "")
             primary["cluster_excluded"] = ci.get("excluded", False)
             primary["cluster_primary"]  = True
-        for sibling in members_sorted[1:]:
+        for sibling in members_sorted:
+            if sibling["name"] == primary["name"]:
+                continue
             sibling["cluster_sibling_of"] = primary["name"]
             sibling["cluster_name"]       = ci.get("name", "")
         if ci.get("vms"):
