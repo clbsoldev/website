@@ -1,7 +1,6 @@
 <svg viewBox="0 0 960 422" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
 <rect width="960" height="422" fill="#0a0e14"/>
-<line x1="480" y1="112" x2="376" y2="196" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
-<line x1="480" y1="112" x2="584" y2="196" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
+<line x1="480" y1="112" x2="480" y2="196" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="480" y1="292" x2="480" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="480" y1="332" x2="391" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="480" y1="332" x2="569" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
@@ -9,17 +8,13 @@
 <text x="480" y="63" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600">UXG-Fiber</text>
 <text x="480" y="80" text-anchor="middle" fill="#5a7a94" font-size="7">Ubiquiti Gateway as Firewall and</text>
 <text x="480" y="91" text-anchor="middle" fill="#5a7a94" font-size="7">Router</text>
-<rect x="235" y="152" width="490" height="140" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
+<rect x="339" y="152" width="282" height="140" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
 <text x="480" y="170" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600" letter-spacing="0.5">DS920+</text>
 <text x="480" y="182" text-anchor="middle" fill="#5a7a94" font-size="7">24x7 running Synology Container Manager &amp; Virtual Maschine Manager</text>
-<rect x="281" y="196" width="190" height="80" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="376" y="227" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600">hau-apt01</text>
-<text x="376" y="244" text-anchor="middle" fill="#5a7a94" font-size="7">apt-cacher-ng Docker Container</text>
-<text x="376" y="255" text-anchor="middle" fill="#5a7a94" font-size="7">as Proxy for Linux Updates</text>
-<rect x="489" y="196" width="190" height="80" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="584" y="227" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600">synology-ds920plus</text>
-<text x="584" y="244" text-anchor="middle" fill="#5a7a94" font-size="7">NAS + Host for Docker Containers</text>
-<text x="584" y="255" text-anchor="middle" fill="#5a7a94" font-size="7">(e.g. n8n)</text>
+<rect x="385" y="196" width="190" height="80" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<text x="480" y="227" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600">synology-ds920plus</text>
+<text x="480" y="244" text-anchor="middle" fill="#5a7a94" font-size="7">NAS + Host for Docker Containers</text>
+<text x="480" y="255" text-anchor="middle" fill="#5a7a94" font-size="7">(e.g. n8n)</text>
 <rect x="311" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
 <text x="391" y="349" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-apt01</text>
 <text x="391" y="364" text-anchor="middle" fill="#5a7a94" font-size="7">apt-cacher-ng Docker</text>
