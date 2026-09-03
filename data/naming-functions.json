@@ -12,5 +12,8 @@
   { "code": "agw",   "function": "Analog Gateway",          "examples": "Cisco VG400 or Audiocodes MP-202" },
   { "code": "ccm",   "function": "Cisco Call Manager",      "examples": "Cisco Call Manager Server (Pub & Sub)" },
   { "code": "rtr",   "function": "Router",                  "examples": "Generic for Routers without exta functionality" },
+  { "code": "aaa",   "function": "AAA Server",              "examples": "Free Radius server, Cisco ISE" },
+  { "code": "jump",   "function": "Jump Host",              "examples": "Windows jump host, Guacamole Jump Host" },
+  { "code": "ntp",   "function": "NTP Server",              "examples": "Network Time Protocol server" },
   { "code": "mgmt",  "function": "Management",              "examples": "Jump host, Ansible control node, management proxy" }
 ]
