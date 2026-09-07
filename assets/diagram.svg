@@ -1,5 +1,5 @@
-<svg viewBox="0 0 1100 1490" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
-<rect width="1100" height="1490" fill="#0a0e14"/>
+<svg viewBox="0 0 1100 1644" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+<rect width="1100" height="1644" fill="#0a0e14"/>
 <rect x="0" y="264" width="1100" height="70" fill="#0c1118" opacity="0.85"/>
 <ellipse cx="550" cy="299" rx="90" ry="26" fill="none" stroke="#1e2a3a" stroke-width="1.5"/>
 <text x="550" y="304" text-anchor="middle" fill="#5a7a94" font-size="11" letter-spacing="3">INTERNET</text>
@@ -8,21 +8,25 @@
 <line x1="550" y1="412" x2="550" y2="325" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
 <line x1="569" y1="680" x2="644" y2="664" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="719" y1="680" x2="644" y2="664" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="367" y1="1210" x2="517" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="517" y1="1210" x2="517" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="667" y1="1210" x2="517" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="352" y1="1014" x2="903" y2="1096" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
-<line x1="352" y1="1014" x2="517" y2="1112" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
+<line x1="179" y1="1210" x2="329" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="329" y1="1210" x2="329" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="479" y1="1210" x2="329" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="575" y1="1210" x2="725" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="725" y1="1210" x2="725" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="875" y1="1210" x2="725" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="352" y1="1014" x2="352" y2="1318" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
+<line x1="352" y1="1014" x2="725" y2="1112" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="352" y1="1014" x2="131" y2="1096" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="550" y1="484" x2="644" y2="582" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
-<line x1="352" y1="1014" x2="329" y2="1112" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
+<line x1="352" y1="1014" x2="537" y2="1112" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="550" y1="484" x2="446" y2="566" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="540" y1="788" x2="446" y2="638" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
-<line x1="903" y1="1168" x2="781" y2="1318" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
+<line x1="352" y1="1390" x2="258" y2="1472" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="540" y1="860" x2="540" y2="942" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
-<line x1="903" y1="1168" x2="969" y2="1318" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
+<line x1="352" y1="1390" x2="446" y2="1472" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="446" y1="638" x2="352" y2="788" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="352" y1="860" x2="352" y2="942" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
+<line x1="352" y1="1014" x2="329" y2="1112" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <rect x="28" y="28" width="514" height="216" rx="2" fill="none" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="4,4"/>
 <text x="38" y="43" fill="#1e2a3a" font-size="8" letter-spacing="2">SaaS SERVICES</text>
 <rect x="106" y="62" width="170" height="72" rx="2" fill="#0a0e14" stroke="#0077a8" stroke-width="1"/>
@@ -45,7 +49,7 @@
 <rect x="824" y="62" width="170" height="72" rx="2" fill="#0a0e14" stroke="#ff8c42" stroke-width="1"/>
 <text x="909" y="94" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">vps-mon01</text>
 <text x="909" y="111" text-anchor="middle" fill="#5a7a94" font-size="7">VPS for Monitoring</text>
-<rect x="28" y="354" width="1044" height="1100" rx="2" fill="none" stroke="#00e5a0" stroke-width="1" stroke-dasharray="4,4"/>
+<rect x="28" y="354" width="1044" height="1254" rx="2" fill="none" stroke="#00e5a0" stroke-width="1" stroke-dasharray="4,4"/>
 <text x="38" y="369" fill="#00e5a0" font-size="8" letter-spacing="2">HOME LAB</text>
 <rect x="465" y="412" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="550" y="438" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">UXG-Fiber</text>
@@ -89,39 +93,54 @@
 <text x="131" y="1122" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">ansible-RPi3Bplus</text>
 <text x="131" y="1139" text-anchor="middle" fill="#5a7a94" font-size="7">RasPi 3B+ as ansible Control</text>
 <text x="131" y="1150" text-anchor="middle" fill="#5a7a94" font-size="7">Node</text>
-<rect x="234" y="1072" width="566" height="122" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
-<text x="517" y="1092" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600" letter-spacing="0.5">hau-hypcl01</text>
-<text x="517" y="1103" text-anchor="middle" fill="#5a7a94" font-size="6.5">non 24x7 running Proxmox VE Cluster</text>
-<rect x="244" y="1112" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="329" y="1144" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp01</text>
-<text x="329" y="1161" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 01</text>
-<rect x="432" y="1112" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="517" y="1144" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp02</text>
-<text x="517" y="1161" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 02</text>
-<rect x="620" y="1112" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="705" y="1144" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp03</text>
-<text x="705" y="1161" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 3, single Network</text>
-<rect x="297" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="367" y="1225" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-lgw01</text>
-<text x="367" y="1240" text-anchor="middle" fill="#5a7a94" font-size="6">Webex Calling</text>
-<text x="367" y="1250" text-anchor="middle" fill="#5a7a94" font-size="6">Registration Based</text>
-<rect x="447" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="517" y="1225" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-sbc02</text>
-<text x="517" y="1240" text-anchor="middle" fill="#5a7a94" font-size="6">AudioCodes Mediant VE</text>
-<text x="517" y="1250" text-anchor="middle" fill="#5a7a94" font-size="6">HA</text>
-<rect x="597" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="667" y="1225" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-sgw01</text>
-<text x="667" y="1240" text-anchor="middle" fill="#5a7a94" font-size="6">Webex Calling</text>
-<text x="667" y="1250" text-anchor="middle" fill="#5a7a94" font-size="6">Survivability Gateway</text>
-<rect x="818" y="1096" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="903" y="1122" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-sw201</text>
-<text x="903" y="1139" text-anchor="middle" fill="#5a7a94" font-size="7">Cisco Switch for Webex Calling</text>
-<text x="903" y="1150" text-anchor="middle" fill="#5a7a94" font-size="7">Endpoints</text>
-<rect x="696" y="1318" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="781" y="1357" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">2N IP Audio Kit</text>
-<rect x="884" y="1318" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
-<text x="969" y="1350" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">2N IP Uni</text>
-<text x="969" y="1367" text-anchor="middle" fill="#5a7a94" font-size="7">2N Intercom</text>
+<rect x="234" y="1072" width="190" height="122" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="329" y="1092" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600" letter-spacing="0.5">docker_hau-app01</text>
+<text x="329" y="1103" text-anchor="middle" fill="#5a7a94" font-size="6.5">Docker Environment on hau-app01</text>
+<rect x="244" y="1112" width="170" height="72" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
+<text x="329" y="1144" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-app01</text>
+<text x="329" y="1161" text-anchor="middle" fill="#5a7a94" font-size="7">RasPi 4B+ 1GB as Docker Host</text>
+<rect x="109" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="179" y="1230" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-aaa01</text>
+<text x="179" y="1245" text-anchor="middle" fill="#5a7a94" font-size="6">Free Radius for 802.1x</text>
+<rect x="259" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="329" y="1230" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-mon01</text>
+<text x="329" y="1245" text-anchor="middle" fill="#5a7a94" font-size="6">Zabbix Proxy</text>
+<rect x="409" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="479" y="1230" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-ntp01</text>
+<text x="479" y="1245" text-anchor="middle" fill="#5a7a94" font-size="6">Secure NTP Server</text>
+<rect x="442" y="1072" width="566" height="122" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="725" y="1092" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600" letter-spacing="0.5">hau-hypcl01</text>
+<text x="725" y="1103" text-anchor="middle" fill="#5a7a94" font-size="6.5">non 24x7 running Proxmox VE Cluster</text>
+<rect x="452" y="1112" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<text x="537" y="1144" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp01</text>
+<text x="537" y="1161" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 01</text>
+<rect x="640" y="1112" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<text x="725" y="1144" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp02</text>
+<text x="725" y="1161" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 02</text>
+<rect x="828" y="1112" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<text x="913" y="1144" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-hyp03</text>
+<text x="913" y="1161" text-anchor="middle" fill="#5a7a94" font-size="7">PVE Node 3, single Network</text>
+<rect x="505" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="575" y="1225" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-lgw01</text>
+<text x="575" y="1240" text-anchor="middle" fill="#5a7a94" font-size="6">Webex Calling</text>
+<text x="575" y="1250" text-anchor="middle" fill="#5a7a94" font-size="6">Registration Based</text>
+<rect x="655" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="725" y="1225" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-sbc02</text>
+<text x="725" y="1240" text-anchor="middle" fill="#5a7a94" font-size="6">AudioCodes Mediant VE</text>
+<text x="725" y="1250" text-anchor="middle" fill="#5a7a94" font-size="6">HA</text>
+<rect x="805" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="875" y="1225" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-sgw01</text>
+<text x="875" y="1240" text-anchor="middle" fill="#5a7a94" font-size="6">Webex Calling</text>
+<text x="875" y="1250" text-anchor="middle" fill="#5a7a94" font-size="6">Survivability Gateway</text>
+<rect x="267" y="1318" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<text x="352" y="1344" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-sw201</text>
+<text x="352" y="1361" text-anchor="middle" fill="#5a7a94" font-size="7">Cisco Switch for Webex Calling</text>
+<text x="352" y="1372" text-anchor="middle" fill="#5a7a94" font-size="7">Endpoints</text>
+<rect x="173" y="1472" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<text x="258" y="1511" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">2N IP Audio Kit</text>
+<rect x="361" y="1472" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
+<text x="446" y="1504" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">2N IP Uni</text>
+<text x="446" y="1521" text-anchor="middle" fill="#5a7a94" font-size="7">2N Intercom</text>
 <line x1="721" y1="134" x2="550" y2="412" stroke="#00d4ff" stroke-width="2.5" stroke-dasharray="6,4" opacity="1"/>
 <rect x="535" y="260" width="201" height="27" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
 <text x="635" y="271" text-anchor="middle" fill="#00d4ff" font-size="7" font-weight="600" letter-spacing="0.5">[WG] vps-edge01</text>
