@@ -2,9 +2,10 @@
 <rect width="960" height="422" fill="#0a0e14"/>
 <line x1="480" y1="112" x2="480" y2="196" stroke="#2a3a4a" stroke-width="2" opacity="0.85"/>
 <line x1="480" y1="292" x2="480" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="480" y1="332" x2="302" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="480" y1="332" x2="480" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="480" y1="332" x2="658" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="480" y1="332" x2="213" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="480" y1="332" x2="391" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="480" y1="332" x2="569" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="480" y1="332" x2="747" y2="332" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <rect x="385" y="32" width="190" height="80" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="480" y="63" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600">USW Pro Max 16 PoE</text>
 <text x="480" y="80" text-anchor="middle" fill="#5a7a94" font-size="7">Top of the Rack Switch Home</text>
@@ -15,13 +16,15 @@
 <rect x="385" y="196" width="190" height="80" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
 <text x="480" y="233" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600">hau-app01</text>
 <text x="480" y="250" text-anchor="middle" fill="#5a7a94" font-size="7">RasPi 4B+ 1GB as Docker Host</text>
-<rect x="222" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="302" y="354" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-aaa01</text>
-<text x="302" y="369" text-anchor="middle" fill="#5a7a94" font-size="7">Free Radius for 802.1x</text>
-<rect x="400" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="480" y="354" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-mon01</text>
-<text x="480" y="369" text-anchor="middle" fill="#5a7a94" font-size="7">Zabbix Proxy</text>
-<rect x="578" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="658" y="354" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-ntp01</text>
-<text x="658" y="369" text-anchor="middle" fill="#5a7a94" font-size="7">Secure NTP Server</text>
+<rect x="133" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="213" y="354" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-aaa01</text>
+<text x="213" y="369" text-anchor="middle" fill="#5a7a94" font-size="7">Free Radius for 802.1x</text>
+<rect x="311" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="391" y="361" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-app01_statuspage</text>
+<rect x="489" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="569" y="354" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-mon01</text>
+<text x="569" y="369" text-anchor="middle" fill="#5a7a94" font-size="7">Zabbix Proxy</text>
+<rect x="667" y="332" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="747" y="354" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-ntp01</text>
+<text x="747" y="369" text-anchor="middle" fill="#5a7a94" font-size="7">Secure NTP Server</text>
 </svg>

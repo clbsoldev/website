@@ -8,9 +8,10 @@
 <line x1="550" y1="412" x2="550" y2="325" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="3,3"/>
 <line x1="569" y1="680" x2="644" y2="664" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="719" y1="680" x2="644" y2="664" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="179" y1="1210" x2="329" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="329" y1="1210" x2="329" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
-<line x1="479" y1="1210" x2="329" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="104" y1="1210" x2="329" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="254" y1="1210" x2="329" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="404" y1="1210" x2="329" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
+<line x1="554" y1="1210" x2="329" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="575" y1="1210" x2="725" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="725" y1="1210" x2="725" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
 <line x1="875" y1="1210" x2="725" y2="1194" stroke="#1e2a3a" stroke-width="1" stroke-dasharray="2,2"/>
@@ -99,15 +100,18 @@
 <rect x="244" y="1112" width="170" height="72" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
 <text x="329" y="1144" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">hau-app01</text>
 <text x="329" y="1161" text-anchor="middle" fill="#5a7a94" font-size="7">RasPi 4B+ 1GB as Docker Host</text>
-<rect x="109" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="179" y="1230" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-aaa01</text>
-<text x="179" y="1245" text-anchor="middle" fill="#5a7a94" font-size="6">Free Radius for 802.1x</text>
-<rect x="259" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="329" y="1230" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-mon01</text>
-<text x="329" y="1245" text-anchor="middle" fill="#5a7a94" font-size="6">Zabbix Proxy</text>
-<rect x="409" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="479" y="1230" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-ntp01</text>
-<text x="479" y="1245" text-anchor="middle" fill="#5a7a94" font-size="6">Secure NTP Server</text>
+<rect x="34" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="104" y="1230" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-aaa01</text>
+<text x="104" y="1245" text-anchor="middle" fill="#5a7a94" font-size="6">Free Radius for 802.1x</text>
+<rect x="184" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="254" y="1231" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-</text>
+<text x="254" y="1243" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">app01_statuspage</text>
+<rect x="334" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="404" y="1230" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-mon01</text>
+<text x="404" y="1245" text-anchor="middle" fill="#5a7a94" font-size="6">Zabbix Proxy</text>
+<rect x="484" y="1210" width="140" height="44" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="554" y="1230" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600">hau-ntp01</text>
+<text x="554" y="1245" text-anchor="middle" fill="#5a7a94" font-size="6">Secure NTP Server</text>
 <rect x="442" y="1072" width="566" height="122" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
 <text x="725" y="1092" text-anchor="middle" fill="#e8f4ff" font-size="8" font-weight="600" letter-spacing="0.5">hau-hypcl01</text>
 <text x="725" y="1103" text-anchor="middle" fill="#5a7a94" font-size="6.5">non 24x7 running Proxmox VE Cluster</text>

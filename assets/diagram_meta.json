@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-09-07 21:06 UTC",
+  "generated_at": "2026-09-14 21:28 UTC",
   "source": "netbox",
   "saas_count": 3,
-  "device_count": 38,
+  "device_count": 39,
   "pub_nodes": 2,
   "lab_nodes": 15,
-  "vm_count": 8,
+  "vm_count": 9,
   "cable_count": 13,
   "tunnel_count": 1,
   "tunnel_source": "netbox",
@@ -30,7 +30,7 @@
       "nodes": [
         "hau-app01"
       ],
-      "vm_count": 3,
+      "vm_count": 4,
       "svg": "assets/diagram-cluster-docker_hau-app01.svg",
       "png": "assets/diagram-cluster-docker_hau-app01.png"
     },
