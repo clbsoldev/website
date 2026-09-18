@@ -21,6 +21,14 @@ on:
         description: 'Single cluster name (leave empty for all)'
         type: string
         default: ''
+      no_vms:
+        description: 'Hide VMs/containers in main diagram'
+        type: boolean
+        default: false
+      cluster_context_levels:
+        description: 'Parent switch levels in cluster diagrams (default: 1)'
+        type: string
+        default: '1'
 
 permissions:
   contents: write           # Required to commit diagram back to repo
@@ -33,13 +41,13 @@ jobs:
     steps:
       # ── 1. Checkout ──────────────────────────────────────────────────────────
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
       # ── 2. Python setup ───────────────────────────────────────────────────────
       - name: Set up Python 3.13
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
@@ -70,9 +78,16 @@ jobs:
             if [ -n "${{ github.event.inputs.cluster }}" ]; then
               ARGS="$ARGS --cluster ${{ github.event.inputs.cluster }}"
             fi
+            if [ "${{ github.event.inputs.no_vms }}" = "true" ]; then
+              ARGS="$ARGS --no-vms"
+            fi
+            if [ -n "${{ github.event.inputs.cluster_context_levels }}" ] && \
+               [ "${{ github.event.inputs.cluster_context_levels }}" != "1" ]; then
+              ARGS="$ARGS --cluster-context-levels ${{ github.event.inputs.cluster_context_levels }}"
+            fi
           else
-            # Scheduled and push runs: always generate cluster diagrams
-            ARGS="$ARGS --cluster-diagrams"
+            # Scheduled and push runs: generate cluster diagrams, hide VMs in main diagram
+            ARGS="$ARGS --cluster-diagrams --no-vms"
           fi
           python scripts/generate_diagram.py $ARGS
 

@@ -189,15 +189,19 @@ def _str(obj: dict | None, key: str) -> str:
 def _make_node(d: dict, tags: set[str], source: str = "device") -> dict:
     """Build a unified node dict from a Netbox device or VM record."""
     role_field = "device_role" if source == "device" else "role"
+    # Custom field 'diagram_name' overrides the hostname in the diagram
+    cf = d.get("custom_fields") or {}
+    diagram_name = cf.get("diagram_name") or ""
     return {
-        "name":        d.get("name") or "unnamed",
-        "description": d.get("description") or _str(d.get(role_field), "name"),
-        "status":      _str(d.get("status"), "value") or "active",
-        "cluster_id":  (d.get("cluster") or {}).get("id"),
-        "cluster_name":(d.get("cluster") or {}).get("name") or "",
-        "no_vms":      TAG_NO_VMS in tags,
-        "source":      source,   # "device" or "vm"
-        "vms":         [],
+        "name":         d.get("name") or "unnamed",
+        "display_name": diagram_name if diagram_name else (d.get("name") or "unnamed"),
+        "description":  d.get("description") or _str(d.get(role_field), "name"),
+        "status":       _str(d.get("status"), "value") or "active",
+        "cluster_id":   (d.get("cluster") or {}).get("id"),
+        "cluster_name": (d.get("cluster") or {}).get("name") or "",
+        "no_vms":       TAG_NO_VMS in tags,
+        "source":       source,   # "device" or "vm"
+        "vms":          [],
     }
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -321,9 +325,10 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
                         "vms":         [],
                     }
                 cluster_info[cid]["vms"].append({
-                    "name":        vm.get("name") or "unnamed-vm",
-                    "description": vm.get("description") or _str(vm.get("role"), "name"),
-                    "status":      _str(vm.get("status"), "value") or "active",
+                    "name":         vm.get("name") or "unnamed-vm",
+                    "display_name": (vm.get("custom_fields") or {}).get("diagram_name") or vm.get("name") or "unnamed-vm",
+                    "description":  vm.get("description") or _str(vm.get("role"), "name"),
+                    "status":       _str(vm.get("status"), "value") or "active",
                 })
 
     # Sort VMs within each cluster
@@ -627,11 +632,13 @@ def _lab_rows(nodes: list[dict], zone_w: int = 1044) -> list[list[dict]]:
 
 
 def _item_width(item: dict) -> int:
-    """Natural width of a render item (solo card or cluster box)."""
+    """Natural width of a render item (solo card or cluster box), capped to avoid overlap."""
     if item["type"] == "solo":
         return DW
     members = item["nodes"]
-    return len(members) * DW + (len(members) - 1) * HGAP + CLUSTER_PAD * 2
+    # Cap at 4 nodes per visual row within cluster box to avoid extreme width
+    visible = min(len(members), 4)
+    return visible * DW + (visible - 1) * HGAP + CLUSTER_PAD * 2
 
 
 def _build_items(row: list[dict], simplify: bool = True) -> list[dict]:
@@ -851,12 +858,13 @@ def _zone_h_lab(nodes: list[dict]) -> int:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_svg(
-    saas:     list[dict],
-    pub:      list[dict],
-    lab:      list[dict],
-    cables:   list[tuple[str, str]],
-    tunnels:  list[tuple[str, str, str, str]],
-    simplify: bool = True,   # True = cluster boxes; False = individual nodes (--no-simplify)
+    saas:      list[dict],
+    pub:       list[dict],
+    lab:       list[dict],
+    cables:    list[tuple[str, str]],
+    tunnels:   list[tuple[str, str, str, str, str]],
+    simplify:  bool = True,
+    show_vms:  bool = True,   # False = hide VM children in main diagram
 ) -> str:
     W = 1100
 
@@ -927,7 +935,7 @@ def build_svg(
         a(f'<rect x="{x}" y="{y}" width="{VM_W}" height="{VM_H}" rx="2" '
           f'fill="{C["vm_bg"]}" stroke="{bdr}" stroke-width="1" '
           f'stroke-dasharray="2,2"/>')
-        nls = _wrap(vm["name"], 18)[:2]
+        nls = _wrap(vm.get("display_name", vm["name"]), 18)[:2]
         nh  = len(nls) * 12
         dls = _desc_lines(vm.get("description",""), 22)
         th  = nh + (len(dls)*10+3 if dls else 0)
@@ -976,7 +984,7 @@ def build_svg(
         bdr = C["pub"] if node.get("status","active") == "active" else C["off"]
         ccx, ccy = render_card(
             rx0 + ci*(DW+HGAP), base_y2 + ri*(DH+VGAP*2),
-            node["name"], node.get("description",""), bdr)
+            node.get("display_name", node["name"]), node.get("description",""), bdr)
         pos_index[node["name"]] = (ccx, ccy)
 
     # ── Internet band (rendered into svg list directly so it sits BELOW conn_lines) ──
@@ -1029,7 +1037,7 @@ def build_svg(
                 if it["type"] == "solo":
                     node = it["nodes"][0]
                     bdr  = C["lab"] if node.get("status","active") == "active" else C["off"]
-                    ccx, ccy = render_card(ix, card_y, node["name"],
+                    ccx, ccy = render_card(ix, card_y, node.get("display_name", node["name"]),
                                            node.get("description",""), bdr)
                     pos_index[node["name"]] = (ccx, ccy)
 
@@ -1044,7 +1052,7 @@ def build_svg(
 
 
                     vms = [v for v in node.get("vms",[]) if v["name"] not in rendered_vms]
-                    if vms:
+                    if vms and show_vms:
                         vm_tw = len(vms)*VM_W + (len(vms)-1)*VM_HGAP
                         vm_x0 = ccx - vm_tw // 2
                         vm_y  = card_y + DH + 16
@@ -1108,7 +1116,7 @@ def build_svg(
                     primary = next((n for n in ms if n.get("cluster_primary")), ms[0])
                     vms = [v for v in primary.get("vms",[]) if v["name"] not in rendered_vms]
                     box_bottom = box_top_y + bh
-                    if vms:
+                    if vms and show_vms:
                         vm_tw = len(vms)*VM_W + (len(vms)-1)*VM_HGAP
                         vm_x0 = icx - vm_tw//2
                         vm_y  = box_bottom + 16
@@ -1183,17 +1191,25 @@ def build_svg(
                     f'{_xml(tdesc[:50])}</text>')
 
     # ── Final SVG assembly (painter's model — order = z-order) ────────────────
-    # Rebuild svg with correct layer order:
-    # 1. background rect (already svg[0] and svg[1])
-    # 2. inet_elems  — Internet band rect sits BELOW the tunnel line
-    # 3. conn_lines  — cables and VM connectors
-    # 4. zone boxes + cards (already appended to svg above)
-    # 5. tunnel_elems — WireGuard on top of everything
-    final_svg: list[str] = svg[:2]           # <svg> opening + background rect
-    final_svg += inet_elems                  # Internet band (below all lines)
-    final_svg += conn_lines                  # cables / VM connectors
-    final_svg += svg[2:]                     # zone boxes + cards already rendered
-    final_svg += tunnel_elems               # WireGuard tunnel always on top
+    final_svg: list[str] = svg[:2]
+    final_svg += inet_elems
+    final_svg += conn_lines
+    final_svg += svg[2:]
+    final_svg += tunnel_elems
+
+    # Hint overlay bottom-right when VMs are hidden
+    if not show_vms:
+        hint_text = "VMs / containers not shown  ·  use --cluster-diagrams for details"
+        hint_w    = len(hint_text) * 5 + 20
+        hint_x    = W - hint_w - 12
+        hint_y    = H - 24
+        final_svg.append(
+            f'<rect x="{hint_x}" y="{hint_y}" width="{hint_w}" height="16" rx="2" '
+            f'fill="{C["surface"]}" stroke="{C["border"]}" stroke-width="1" opacity="0.9"/>')
+        final_svg.append(
+            f'<text x="{hint_x + hint_w//2}" y="{hint_y + 11}" text-anchor="middle" '
+            f'fill="{C["dim"]}" font-size="6.5" letter-spacing="0.3">{hint_text}</text>')
+
     final_svg.append('</svg>')
     return "\n".join(final_svg)
 
@@ -1204,12 +1220,13 @@ def build_svg(
 # ══════════════════════════════════════════════════════════════════════════════
 
 def build_cluster_svg(
-    cluster_name: str,
-    cluster_desc: str,
-    nodes:        list[dict],   # cluster member devices
-    vms:          list[dict],   # VMs belonging to this cluster
-    context_nodes: list[dict],  # switches/parents the nodes connect to
-    cables:       list[tuple[str,str]],
+    cluster_name:    str,
+    cluster_desc:    str,
+    nodes:           list[dict],
+    vms:             list[dict],
+    context_nodes:   list[dict],
+    node_parent_map: dict[str, str],   # node_name → parent_switch_name
+    cables:          list[tuple[str,str]],
 ) -> str:
     """
     Dedicated diagram for a single cluster.
@@ -1307,7 +1324,8 @@ def build_cluster_svg(
         ctx_xs = _xs(len(context_nodes), PAD, ZW, CW, GAP)
         for j, cn in enumerate(context_nodes):
             bdr = C["pub"] if cn.get("source") == "vm" else C["lab"]
-            ccx, ccy = _card(ctx_xs[j], ctx_y, cn["name"],
+            ccx, ccy = _card(ctx_xs[j], ctx_y,
+                              cn.get("display_name", cn["name"]),
                               cn.get("description",""), bdr)
             pos_index[cn["name"]] = (ccx, ccy)
 
@@ -1328,22 +1346,23 @@ def build_cluster_svg(
 
     # Ensure siblings inherit _parent from their primary
     primary_parent = next(
-        (n.get("_parent") for n in nodes if n.get("cluster_primary") and n.get("_parent")),
+        (node_parent_map.get(n["name"]) for n in nodes if node_parent_map.get(n["name"])),
         context_nodes[0]["name"] if context_nodes else None
     )
     for node in nodes:
         if not node.get("_parent") and primary_parent:
             node["_parent"] = primary_parent
 
-    # Build parent → list of (card_cx, card_top_y) — one entry per node
+    # Build parent → list of (card_cx, card_top_y) using node_parent_map for accuracy
     parent_to_nodes: dict[str, list[tuple[int,int]]] = {}
     for j, node in enumerate(nodes):
         bdr = C["lab"] if node.get("status","active") == "active" else C["off"]
-        ccx, ccy = _card(node_xs[j], node_y, node["name"],
+        ccx, ccy = _card(node_xs[j], node_y, node.get("display_name", node["name"]),
                          node.get("description",""), bdr)
         pos_index[node["name"]] = (ccx, ccy)
-        pname = node.get("_parent")
-        if pname:
+        # node_parent_map gives the accurate switch per node (supports dual-NIC)
+        pname = node_parent_map.get(node["name"]) or node.get("_parent")
+        if pname and pname in pos_index:
             parent_to_nodes.setdefault(pname, []).append((ccx, node_y))
 
     # Draw exactly one line per node from parent bottom-edge to node top-edge
@@ -1410,6 +1429,14 @@ def main() -> None:
         "--no-main-diagram", action="store_false", dest="main_diagram",
         help="Skip the main overview diagram"
     )
+    parser.add_argument(
+        "--no-vms", action="store_true",
+        help="Hide VM/container children in main diagram (shown in cluster diagrams)"
+    )
+    parser.add_argument(
+        "--cluster-context-levels", type=int, default=1, metavar="N",
+        help="How many parent switch levels to show as context in cluster diagrams (default: 1)"
+    )
     args = parser.parse_args()
 
     if args.cluster:
@@ -1433,7 +1460,8 @@ def main() -> None:
 
     if args.main_diagram:
         svg_str = build_svg(SAAS_NODES, pub, lab, cables, tunnels,
-                            simplify=not args.no_simplify)
+                            simplify=not args.no_simplify,
+                            show_vms=not args.no_vms)
         with open(OUTPUT_SVG, "w", encoding="utf-8") as f:
             f.write(svg_str)
         print(f"[OK] {OUTPUT_SVG}  saas={len(SAAS_NODES)}  pub={len(pub)}  "
@@ -1472,26 +1500,54 @@ def main() -> None:
             seen_clusters[cname]["nodes"].append(node)
 
         for cname, cdata in seen_clusters.items():
-            # Find context nodes: direct parents of cluster members
+            # Collect ALL switches connected to any cluster node (supports dual-NIC)
+            # Walk up cluster_context_levels parent levels
             context_names: set[str] = set()
+            for node in cdata["nodes"]:
+                # Level 1: direct parent(s) from BFS
+                direct = node.get("_parent")
+                if direct and direct in node_by_name:
+                    context_names.add(direct)
+                # Additional levels: walk up from each direct parent
+                current_level = {direct} if direct else set()
+                for _lvl in range(1, args.cluster_context_levels):
+                    next_level: set[str] = set()
+                    for pname in current_level:
+                        if not pname:
+                            continue
+                        pnode = node_by_name.get(pname)
+                        if pnode:
+                            grandparent = pnode.get("_parent")
+                            if grandparent and grandparent in node_by_name:
+                                context_names.add(grandparent)
+                                next_level.add(grandparent)
+                    current_level = next_level
+
+            # Sort by topo_level so higher-level switches appear first (top of diagram)
+            context_nodes = sorted(
+                [node_by_name[n] for n in context_names if n in node_by_name],
+                key=lambda n: (n.get("topo_level", 0), n["name"])
+            )
+
+            # Build node→parent_switch mapping for individual cable lines
+            node_parent_map: dict[str, str] = {}
             for node in cdata["nodes"]:
                 p = node.get("_parent")
                 if p and p in node_by_name:
-                    context_names.add(p)
-            context_nodes = [node_by_name[n] for n in sorted(context_names)
-                             if n in node_by_name]
+                    node_parent_map[node["name"]] = p
 
             safe_name = cname.lower().replace(" ", "-").replace("/", "-")
             out_svg   = f"assets/diagram-cluster-{safe_name}.svg"
             out_png   = f"assets/diagram-cluster-{safe_name}.png"
 
             svg_str = build_cluster_svg(
-                cluster_name  = cname,
-                cluster_desc  = cdata["desc"],
-                nodes         = sorted(cdata["nodes"], key=lambda n: n["name"]),
-                vms           = cdata["vms"],
-                context_nodes = context_nodes,
-                cables        = cables,
+                cluster_name   = cname,
+                cluster_desc   = cdata["desc"],
+                nodes          = sorted(cdata["nodes"], key=lambda n: n["name"]),
+                vms            = cdata["vms"],
+                context_nodes  = context_nodes,
+                node_parent_map = node_parent_map,
+                cables         = cables,
             )
             with open(out_svg, "w", encoding="utf-8") as f:
                 f.write(svg_str)
