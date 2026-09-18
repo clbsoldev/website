@@ -1278,7 +1278,7 @@ def build_cluster_svg(
         bdr    = C["lab"] if status == "active" else C["off"]
         a(f'<rect x="{x}" y="{y}" width="{VMW}" height="{VMH}" rx="2" '
           f'fill="{C["vm_bg"]}" stroke="{bdr}" stroke-width="1" stroke-dasharray="2,2"/>')
-        nls = _wrap(vm["name"], 20)[:2]
+        nls = _wrap(vm.get("display_name", vm["name"]), 20)[:2]
         dls = _desc_lines(vm.get("description",""), 24)
         nh  = len(nls)*12
         th  = nh + (len(dls)*10+3 if dls else 0)
@@ -1383,15 +1383,13 @@ def build_cluster_svg(
         box_cx  = box_x + box_w//2
         box_bot = box_y + box_h
         vm_xs   = _xs(len(vms), PAD, ZW, VMW, GAP)
-        conn_lines.append(
-            f'<line x1="{box_cx}" y1="{box_bot}" x2="{box_cx}" y2="{vm_y}" '
-            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+        # One line per VM: from cluster box bottom-center to each VM top-center
         for k, vm in enumerate(vms):
             vcx = vm_xs[k] + VMW//2
             conn_lines.append(
-                f'<line x1="{box_cx}" y1="{vm_y}" '
+                f'<line x1="{box_cx}" y1="{box_bot}" '
                 f'x2="{vcx}" y2="{vm_y}" '
-                f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+                f'stroke="{C["border"]}" stroke-width="1.5" stroke-dasharray="2,2"/>')
             _vm_card(vm_xs[k], vm_y, vm)
 
     final: list[str] = svg[:2] + conn_lines + svg[2:]
