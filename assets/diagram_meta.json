@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-09-28 22:56 UTC",
+  "generated_at": "2026-10-05 23:44 UTC",
   "source": "netbox",
   "saas_count": 3,
-  "device_count": 39,
+  "device_count": 40,
   "pub_nodes": 2,
   "lab_nodes": 15,
-  "vm_count": 9,
+  "vm_count": 10,
   "cable_count": 13,
   "tunnel_count": 1,
   "tunnel_source": "netbox",
@@ -13,12 +13,12 @@
     {
       "name": "DS920+",
       "description": "24x7 running Synology Container Manager & Virtual Maschine Manager",
-      "notes": "",
+      "notes": "### macvlan Interface f\u00fcr Docker hosts mit eigener IP wie folgt via SSH angelegt\r\n```bash\r\nsudo docker network create -d macvlan \\\r\n  --subnet=10.163.87.0/24 --gateway=10.163.87.1 \\\r\n  -o parent=ovs_eth0.87 \\\r\n  vlan87_server\r\n```",
       "node_count": 1,
       "nodes": [
         "synology-ds920plus"
       ],
-      "vm_count": 2,
+      "vm_count": 3,
       "svg": "assets/diagram-cluster-ds920+.svg",
       "png": "assets/diagram-cluster-ds920+.png"
     },
