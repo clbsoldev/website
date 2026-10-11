@@ -5,6 +5,11 @@
     "notes": "Generic prefix for hosted VPS — hoster-independent"
   },
   {
+    "prefix": "fra",
+    "meaning": "Frankfurt am Main",
+    "notes": "3-letter UN/LOCODE · DE FRA"
+  },
+  {
     "prefix": "hau",
     "meaning": "Hanau",
     "notes": "3-letter UN/LOCODE · DE HAU · primary home lab site"

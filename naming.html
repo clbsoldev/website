@@ -20,15 +20,16 @@
   <h1 class="fade-up delay-1">Host <span class="accent">Naming</span> Convention</h1>
   <p class="hero-desc fade-up delay-2">
     Consistent hostname schema used across all lab infrastructure —
-    VPS hosts, physical devices, VMs and LXC containers.
+    VPS hosts, cloud instances, physical devices, VMs and containers.
   </p>
 
   <!-- Schema -->
   <div class="schema">
     <div class="schema-line">
-      <span class="seg">xxx</span><span class="sep">-</span><span class="seg">yyy</span><span class="sep">&lt;</span><span class="seg">nn</span><span class="sep">&gt;</span><span class="opt">[.role]</span><span class="sep">.clb-sol.dev</span>
+      <span class="opt">[hyperscaler-]</span><span class="seg">xxx</span><span class="sep">-</span><span class="seg">yyy</span><span class="sep">&lt;</span><span class="seg">nn</span><span class="sep">&gt;</span><span class="opt">[.role]</span><span class="sep">.clb-sol.dev</span>
     </div>
     <div class="schema-annotation">
+      <span><span class="key">[hyperscaler-]</span> — optional prefix, only present for cloud IaaS instances</span>
       <span><span class="key">xxx</span> — site / location prefix</span>
       <span><span class="key">yyy</span> — function / role of host</span>
       <span><span class="key">nn</span> — two-digit sequence number</span>
@@ -46,6 +47,15 @@
         <div class="example-desc">
           <strong>vps</strong> — VPS at external hoster ·
           <strong>mon</strong> — monitoring ·
+          <strong>01</strong> — first instance
+        </div>
+      </div>
+      <div class="example-card">
+        <div class="example-hostname">oci-fra-app01.clb-sol.dev</div>
+        <div class="example-desc">
+          <strong>oci</strong> — hyperscaler (Oracle Cloud Infrastructure) ·
+          <strong>fra</strong> — site (region Frankfurt) ·
+          <strong>app</strong> — generic application / docker host ·
           <strong>01</strong> — first instance
         </div>
       </div>
@@ -79,6 +89,34 @@
     </div>
   </div>
 
+  <!-- Optional: Hyperscaler prefix -->
+  <div style="margin-bottom:3rem;">
+    <div class="section-label">Optional · hyperscaler-</div>
+    <h2 style="margin-bottom:.75rem;">Hyperscaler Prefix</h2>
+    <p class="text-dim" style="margin-bottom:1.25rem;max-width:620px;">
+      Prepended in front of the normal <code class="code" style="font-size:.78rem">xxx-yyy&lt;nn&gt;</code>
+      schema, only for cloud IaaS compute instances (Oracle Cloud Infrastructure, AWS, Azure, …) —
+      a materially different kind of resource — part of a larger elastic cloud platform rather than
+      a single rented VM. Omitted entirely for on-prem hosts (<code class="code" style="font-size:.78rem">hau</code>)
+      and classic flat-rate VPS products (<code class="code" style="font-size:.78rem">vps</code>).
+      <code class="code" style="font-size:.78rem">fra-app01</code> would be a genuine physical/owned
+      presence in Frankfurt; <code class="code" style="font-size:.78rem">oci-fra-app01</code> is the
+      same location, just hosted via a hyperscaler instead.
+    </p>
+    <div class="conv-table-wrap">
+      <table class="conv-table" id="table-hyperscalers">
+        <thead>
+          <tr>
+            <th data-col="code">Code <i class="sort-icon">↕</i></th>
+            <th data-col="hyperscaler">Hyperscaler <i class="sort-icon">↕</i></th>
+            <th data-col="notes">Notes <i class="sort-icon">↕</i></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- Part 1: Site prefix -->
   <div style="margin-bottom:3rem;">
     <div class="section-label">Part 1 · xxx</div>
@@ -89,6 +127,10 @@
       Sites outside Germany prepend the ISO 3166-1 alpha-2 country code:
       <code class="code" style="font-size:.78rem">nl-ams</code>,
       <code class="code" style="font-size:.78rem">us-nyc</code>.
+      For a hyperscaler-hosted instance, <span class="key">xxx</span> is still just the
+      UN/LOCODE of the region the instance physically runs in (e.g.
+      <code class="code" style="font-size:.78rem">fra</code>) — the hyperscaler goes in
+      front as its own optional prefix, see above.
     </div>
     <div class="conv-table-wrap">
       <table class="conv-table" id="table-sites">
@@ -122,7 +164,7 @@
     </div>
   </div>
 
-  <!-- Part 3: Role subdomain -->
+  <!-- Optional: Role subdomain -->
   <div style="margin-bottom:3rem;">
     <div class="section-label">Optional · .role</div>
     <h2 style="margin-bottom:.75rem;">Service Role Subdomain</h2>
@@ -141,6 +183,34 @@
         </thead>
         <tbody></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Containers -->
+  <div style="margin-bottom:3rem;">
+    <div class="section-label">Containers</div>
+    <h2 style="margin-bottom:.75rem;">Naming Containers</h2>
+    <p class="text-dim" style="max-width:620px;">
+      A container is named exactly like any other host — there is no separate container
+      syntax, no nesting, no parent-host reference in the name. It simply inherits the
+      prefix of the host it runs on (hyperscaler prefix included, if present) and gets
+      its own function code and sequence number, same as a VM or a physical device would.
+    </p>
+    <div class="example-grid" style="margin-top:1.25rem;">
+      <div class="example-card">
+        <div class="example-hostname">xxx-yyy&lt;nn&gt;</div>
+        <div class="example-desc">
+          Container on a plain host — inherits just the site prefix, gets its own
+          function and sequence.
+        </div>
+      </div>
+      <div class="example-card">
+        <div class="example-hostname">hyperscaler-xxx-yyy&lt;nn&gt;</div>
+        <div class="example-desc">
+          Container on a cloud IaaS instance — inherits the full hyperscaler+site
+          prefix the same way.
+        </div>
+      </div>
     </div>
   </div>
 
@@ -228,6 +298,12 @@
   const mono = (val) => `<code style="font-family:var(--mono);font-size:.8rem;color:var(--accent)">${val}</code>`;
 
   // ── Wire up tables ──────────────────────────────────────────────────────────
+  makeTable('table-hyperscalers', 'data/naming-hyperscaler.json', [
+    { key: 'code',   render: r => code(r.code) },
+    { key: 'hyperscaler', render: r => `<strong style="color:var(--text-head)">${r.hyperscaler}</strong>` },
+    { key: 'notes',  render: r => text(r.notes) },
+  ]);
+
   makeTable('table-sites', 'data/naming-sites.json', [
     { key: 'prefix',  render: r => code(r.prefix) },
     { key: 'meaning', render: r => `<strong style="color:var(--text-head)">${r.meaning}</strong>` },

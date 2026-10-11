@@ -1,0 +1,6 @@
+[
+  { "code": "az",  "hyperscaler": "Microsoft Azure", "notes": "Azure VMs · AKS · strong Microsoft 365 integration" },
+  { "code": "aws", "hyperscaler": "Amazon Web Services", "notes": "EC2 · Lambda · S3 · largest global IaaS footprint" },
+  { "code": "oci", "hyperscaler": "Oracle Cloud Infrastructure", "notes": "IaaS Environment from Oracle" },
+  { "code": "ovh", "hyperscaler": "OVHcloud", "notes": "European multi-region · bare metal & Public Cloud" }
+]
