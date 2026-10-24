@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-24 06:05 UTC",
+  "generated_at": "2026-10-24 06:10 UTC",
   "source": "netbox",
   "saas_count": 3,
   "device_count": 42,
@@ -13,7 +13,7 @@
     {
       "name": "DS920+",
       "description": "24x7 running Synology Container Manager & Virtual Maschine Manager",
-      "notes": "### macvlan Interface f\u00fcr Docker hosts mit eigener IP wie folgt via SSH angelegt\r\n```bash\r\nsudo docker network create -d macvlan \\\r\n  --subnet=10.163.87.0/24 --gateway=10.163.87.1 \\\r\n  -o parent=ovs_eth0.87 \\\r\n  vlan87_server\r\n```",
+      "notes": "Hosting Docker Containers and VM's with high disk read/write actions",
       "node_count": 1,
       "nodes": [
         "synology-ds920plus"
@@ -21,32 +21,6 @@
       "vm_count": 3,
       "svg": "assets/diagram-cluster-ds920+.svg",
       "png": "assets/diagram-cluster-ds920+.png"
-    },
-    {
-      "name": "docker_hau-app01",
-      "description": "Docker Environment on hau-app01",
-      "notes": "",
-      "node_count": 1,
-      "nodes": [
-        "hau-app01"
-      ],
-      "vm_count": 4,
-      "svg": "assets/diagram-cluster-docker_hau-app01.svg",
-      "png": "assets/diagram-cluster-docker_hau-app01.png"
-    },
-    {
-      "name": "hau-hypcl01",
-      "description": "non 24x7 running Proxmox VE Cluster",
-      "notes": "Proxmox VE Cluster based on Lenovo M720q tiny",
-      "node_count": 3,
-      "nodes": [
-        "hau-hyp01",
-        "hau-hyp02",
-        "hau-hyp03"
-      ],
-      "vm_count": 3,
-      "svg": "assets/diagram-cluster-hau-hypcl01.svg",
-      "png": "assets/diagram-cluster-hau-hypcl01.png"
     }
   ],
   "filter_tags": {
