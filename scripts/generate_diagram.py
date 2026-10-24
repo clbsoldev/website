@@ -111,6 +111,7 @@ TAG_HOMELAB        = "diagram-homelab"
 TAG_EXCLUDE        = "diagram-exclude"
 TAG_NO_VMS         = "diagram-no-vms"
 TAG_CLUSTER_EXCLUDE = "diagram-cluster-exclude"  # skip this cluster in --cluster-diagrams
+TAG_CLUSTER_NO_BOX  = "diagram-cluster-no-box"   # render cluster as solo node in main diagram
 
 # ── Static fallback (when Netbox is unreachable / no tagged devices) ──────────
 FALLBACK_PUBLIC: list[dict] = [
@@ -290,22 +291,33 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
     # Fetch cluster details (name + description) from Netbox
     print("[INFO] Fetching /virtualization/clusters/ …")
     raw_clusters = nb_get("/virtualization/clusters/")
+    # Lookups for docker_host resolution: device first, then VM
+    dev_by_name: dict[str, dict] = {
+        d.get("name"): d for d in raw_all_dev if d.get("name")
+    }
+    vm_by_name: dict[str, dict] = {
+        vm.get("name"): vm for vm in raw_all_vm if vm.get("name")
+    }
+
     cluster_details: dict[int, dict] = {}
     for cl in raw_clusters:
         cid = cl.get("id")
         if cid:
-            # custom_fields: look for a field named 'diagram_notes' or 'notes'
-            cf = cl.get("custom_fields") or {}
-            notes = cf.get("diagram_notes") or cf.get("notes") or ""
-            # comments is a Netbox free-text field (may contain Markdown)
-            comments = cl.get("comments") or ""
-            # Prefer custom_field notes, fall back to comments
-            detail_text = notes if notes else comments
+            cf           = cl.get("custom_fields") or {}
+            notes        = cf.get("diagram_notes") or cf.get("notes") or ""
+            comments     = cl.get("comments") or ""
+            detail_text  = notes if notes else comments
+            docker_host  = cf.get("docker_host") or ""
+            cl_tag_slugs = {t.get("slug","") for t in (cl.get("tags") or [])}
+            cl_type_slug = _str(cl.get("type"), "slug") if cl.get("type") else ""
             cluster_details[cid] = {
                 "name":        cl.get("name") or f"cluster-{cid}",
                 "description": cl.get("description") or "",
                 "notes":       detail_text,
-                "excluded":    TAG_CLUSTER_EXCLUDE in {t.get("slug","") for t in (cl.get("tags") or [])},
+                "excluded":    TAG_CLUSTER_EXCLUDE in cl_tag_slugs,
+                "no_box":      TAG_CLUSTER_NO_BOX  in cl_tag_slugs,
+                "docker_host": docker_host,
+                "type_slug":   cl_type_slug,
             }
 
     # cluster_id → { name, description, notes, vms[] }
@@ -322,6 +334,7 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
                         "name":        det.get("name") or cname,
                         "description": det.get("description") or "",
                         "notes":       det.get("notes") or "",
+                        "no_box":      det.get("no_box", False),
                         "vms":         [],
                     }
                 cluster_info[cid]["vms"].append({
@@ -335,8 +348,42 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
     for ci in cluster_info.values():
         ci["vms"].sort(key=lambda v: v["name"])
 
+    # Inject docker_host as synthetic cluster node:
+    # 1. Look up physical device by name first
+    # 2. Fall back to VM
+    for cid, det in cluster_details.items():
+        docker_host_name = det.get("docker_host", "")
+        if not docker_host_name:
+            continue
+        if docker_host_name in seen_lab:
+            print(f"[DEBUG] docker_host '{docker_host_name}' already in lab_nodes — skipping injection")
+            continue
+        # Device-first lookup
+        raw_host = dev_by_name.get(docker_host_name)
+        host_source = "device"
+        if raw_host:
+            print(f"[INFO] docker_host '{docker_host_name}': resolved as physical device")
+        else:
+            raw_host = vm_by_name.get(docker_host_name)
+            host_source = "vm"
+            if raw_host:
+                print(f"[INFO] docker_host '{docker_host_name}': resolved as VM (fallback)")
+        if not raw_host:
+            print(f"[WARN] docker_host '{docker_host_name}' not found in devices or VMs")
+            continue
+        host_tags = _tags(raw_host)
+        if TAG_EXCLUDE in host_tags:
+            continue
+        node = _make_node(raw_host, host_tags, source=host_source)
+        node["cluster_id"]   = cid
+        node["cluster_name"] = det.get("name", "")
+        node["cluster_no_box"] = det.get("no_box", False)
+        seen_lab.add(docker_host_name)
+        lab_nodes_raw.append(node)
+        print(f"[INFO] Injected docker_host '{docker_host_name}' ({host_source}) as node "
+              f"in cluster '{det['name']}' (no_box={det.get('no_box', False)})")
+
     # Group lab nodes by cluster_id to find which nodes share a cluster
-    # cluster_id → [node, node, ...]
     cluster_nodes: dict[int, list[dict]] = defaultdict(list)
     for node in lab_nodes_raw:
         if node["cluster_id"]:
@@ -358,6 +405,10 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
             primary["cluster_desc"]     = ci.get("description", "")
             primary["cluster_notes"]    = ci.get("notes", "")
             primary["cluster_excluded"] = ci.get("excluded", False)
+            primary["cluster_no_box"]   = (
+                ci.get("no_box", False)
+                or primary.get("cluster_no_box", False)  # set by docker_host injection
+            )
             primary["cluster_primary"]  = True
         for sibling in members_sorted:
             if sibling["name"] == primary["name"]:
@@ -584,7 +635,7 @@ ROW_GAP       = 48          # vertical gap between topo rows
 #  Balanced-tree layout helpers
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _lab_rows(nodes: list[dict], zone_w: int = 1044) -> list[list[dict]]:
+def _lab_rows(nodes: list[dict], zone_w: int = 1144) -> list[list[dict]]:
     """
     Group lab nodes by topo_level into ordered rows.
     If a row's total item width exceeds zone_w, split it into
@@ -652,7 +703,9 @@ def _build_items(row: list[dict], simplify: bool = True) -> list[dict]:
     solo: list[dict] = []
     for node in row:
         cid = node.get("cluster_id")
-        if cid and (node.get("cluster_primary") or node.get("cluster_sibling_of")):
+        # no_box clusters render as solo cards in main diagram
+        no_box = node.get("cluster_no_box", False)
+        if cid and not no_box and (node.get("cluster_primary") or node.get("cluster_sibling_of")):
             cluster_groups.setdefault(cid, []).append(node)
         else:
             solo.append(node)
@@ -670,7 +723,7 @@ def _assign_x_positions(
     rows_items: list[list[dict]],
     zone_cx: int,
     zone_x: int = 28,
-    zone_w: int = 1044,
+    zone_w: int = 1144,
 ) -> dict[str, int]:
     """
     Balanced-tree horizontal layout with collision resolution.
@@ -838,7 +891,7 @@ def _zone_h_lab(nodes: list[dict]) -> int:
     """Estimate home lab zone height."""
     if not nodes:
         return DH + ZONE_HDR + 20
-    rows = _lab_rows(nodes, zone_w=1044)
+    rows = _lab_rows(nodes, zone_w=1144)
     total = ZONE_HDR + 12
     for row in rows:
         items = _build_items(row)
@@ -866,7 +919,7 @@ def build_svg(
     simplify:  bool = True,
     show_vms:  bool = True,   # False = hide VM children in main diagram
 ) -> str:
-    W = 1100
+    W = 1200
 
     TOP_PAD  = ZONE_PAD
     TOP_GAP  = 16
