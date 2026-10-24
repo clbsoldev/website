@@ -1,5 +1,5 @@
-<svg viewBox="0 0 1200 1770" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
-<rect width="1200" height="1770" fill="#0a0e14"/>
+<svg viewBox="0 0 1200 1548" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+<rect width="1200" height="1548" fill="#0a0e14"/>
 <rect x="0" y="168" width="1200" height="70" fill="#0c1118" opacity="0.85"/>
 <ellipse cx="600" cy="203" rx="90" ry="26" fill="none" stroke="#1e2a3a" stroke-width="1.5"/>
 <text x="600" y="208" text-anchor="middle" fill="#5a7a94" font-size="11" letter-spacing="3">INTERNET</text>
@@ -45,7 +45,7 @@
 <rect x="993" y="62" width="170" height="72" rx="2" fill="#0a0e14" stroke="#ff8c42" stroke-width="1"/>
 <text x="1078" y="94" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">vps-mon01</text>
 <text x="1078" y="111" text-anchor="middle" fill="#5a7a94" font-size="7">VPS for Monitoring</text>
-<rect x="28" y="258" width="1144" height="1476" rx="2" fill="none" stroke="#00e5a0" stroke-width="1" stroke-dasharray="4,4"/>
+<rect x="28" y="258" width="1144" height="1254" rx="2" fill="none" stroke="#00e5a0" stroke-width="1" stroke-dasharray="4,4"/>
 <text x="38" y="273" fill="#00e5a0" font-size="8" letter-spacing="2">HOME LAB</text>
 <rect x="515" y="316" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="600" y="342" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">UXG-Fiber</text>
@@ -109,14 +109,10 @@
 <rect x="411" y="1240" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="496" y="1272" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">2N IP Uni</text>
 <text x="496" y="1289" text-anchor="middle" fill="#5a7a94" font-size="7">2N Intercom</text>
-<rect x="515" y="1394" width="170" height="72" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
-<text x="600" y="1420" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-app01</text>
-<text x="600" y="1437" text-anchor="middle" fill="#5a7a94" font-size="7">Docker Host for Central</text>
-<text x="600" y="1448" text-anchor="middle" fill="#5a7a94" font-size="7">Services</text>
 <line x1="890" y1="134" x2="600" y2="316" stroke="#00d4ff" stroke-width="2.5" stroke-dasharray="6,4" opacity="1"/>
 <rect x="645" y="212" width="201" height="27" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
 <text x="745" y="223" text-anchor="middle" fill="#00d4ff" font-size="7" font-weight="600" letter-spacing="0.5">[WG] vps-edge01</text>
 <text x="745" y="234" text-anchor="middle" fill="#5a7a94" font-size="6">Remote Access to internal Webservices</text>
-<rect x="843" y="1746" width="345" height="16" rx="2" fill="#111620" stroke="#1e2a3a" stroke-width="1" opacity="0.9"/>
-<text x="1015" y="1757" text-anchor="middle" fill="#5a7a94" font-size="6.5" letter-spacing="0.3">VMs / containers not shown  ·  use --cluster-diagrams for details</text>
+<rect x="843" y="1524" width="345" height="16" rx="2" fill="#111620" stroke="#1e2a3a" stroke-width="1" opacity="0.9"/>
+<text x="1015" y="1535" text-anchor="middle" fill="#5a7a94" font-size="6.5" letter-spacing="0.3">VMs / containers not shown  ·  use --cluster-diagrams for details</text>
 </svg>
