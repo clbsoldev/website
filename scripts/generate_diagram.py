@@ -484,7 +484,7 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
         tunnels = LOGICAL_TUNNELS_FALLBACK
 
     total_raw = len(raw_all_dev) + len(raw_all_vm)
-    return pub_nodes, lab_nodes, cables, tunnels, total_raw
+    return pub_nodes, lab_nodes, cables, tunnels, total_raw, cluster_details
 
 
 def _topo_sort(
@@ -1484,7 +1484,7 @@ def main() -> None:
     if args.cluster:
         args.cluster_diagrams = True
 
-    pub, lab, cables, tunnels, raw_count = fetch_all()
+    pub, lab, cables, tunnels, raw_count, cluster_details = fetch_all()
     now    = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     source = "netbox"
 
