@@ -1,0 +1,13 @@
+<svg viewBox="0 0 960 302" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+<rect width="960" height="302" fill="#0a0e14"/>
+<line x1="480" y1="172" x2="480" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<rect x="339" y="32" width="282" height="140" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
+<text x="480" y="50" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600" letter-spacing="0.5">docker_oci-fra-app01</text>
+<text x="480" y="62" text-anchor="middle" fill="#5a7a94" font-size="7">Hosting of Central Docker Containers</text>
+<rect x="385" y="76" width="190" height="80" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
+<text x="480" y="113" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600">oci-fra-app01</text>
+<text x="480" y="130" text-anchor="middle" fill="#5a7a94" font-size="7">Docker Host for Central Services</text>
+<rect x="400" y="212" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="480" y="235" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-</text>
+<text x="480" y="247" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">app01_statuspage</text>
+</svg>

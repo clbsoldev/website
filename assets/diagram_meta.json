@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-10-19 21:59 UTC",
+  "generated_at": "2026-10-24 05:51 UTC",
   "source": "netbox",
   "saas_count": 3,
-  "device_count": 41,
+  "device_count": 42,
   "pub_nodes": 3,
-  "lab_nodes": 15,
-  "vm_count": 10,
+  "lab_nodes": 16,
+  "vm_count": 11,
   "cable_count": 13,
   "tunnel_count": 1,
   "tunnel_source": "netbox",
@@ -47,6 +47,18 @@
       "vm_count": 3,
       "svg": "assets/diagram-cluster-hau-hypcl01.svg",
       "png": "assets/diagram-cluster-hau-hypcl01.png"
+    },
+    {
+      "name": "docker_oci-fra-app01",
+      "description": "Hosting of Central Docker Containers",
+      "notes": "",
+      "node_count": 1,
+      "nodes": [
+        "oci-fra-app01"
+      ],
+      "vm_count": 1,
+      "svg": "assets/diagram-cluster-docker_oci-fra-app01.svg",
+      "png": "assets/diagram-cluster-docker_oci-fra-app01.png"
     }
   ],
   "filter_tags": {
