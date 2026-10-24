@@ -1521,13 +1521,13 @@ def main() -> None:
         seen_clusters: dict[str, dict] = {}
         node_by_name: dict[str, dict] = {n["name"]: n for n in lab}
 
+        # Collect clusters from lab nodes
         for node in lab:
             cname = node.get("cluster_name", "")
             if not cname:
                 continue
             if args.cluster and cname != args.cluster:
                 continue
-            # Skip clusters tagged diagram-cluster-exclude unless explicitly requested
             if node.get("cluster_excluded") and not args.cluster:
                 print(f"[INFO] Skipping cluster '{cname}' (tagged {TAG_CLUSTER_EXCLUDE})")
                 continue
@@ -1540,6 +1540,42 @@ def main() -> None:
                     "vms":   node.get("vms", []) if node.get("cluster_primary") else [],
                 }
             seen_clusters[cname]["nodes"].append(node)
+
+        # Also collect clusters whose docker_host is a public node (not in lab)
+        # These have no lab node but still need a cluster diagram
+        pub_names = {n["name"] for n in pub}
+        for cid, det in cluster_details.items():
+            docker_host_name = det.get("docker_host", "")
+            if not docker_host_name or docker_host_name not in pub_names:
+                continue
+            cname = det.get("name", "")
+            if not cname or cname in seen_clusters:
+                continue
+            if args.cluster and cname != args.cluster:
+                continue
+            if det.get("excluded") and not args.cluster:
+                continue
+            # Find the public node
+            pub_node = next((n for n in pub if n["name"] == docker_host_name), None)
+            if not pub_node:
+                continue
+            ci = cluster_info.get(cid, {})
+            # Build a minimal node dict for the cluster diagram
+            synthetic = dict(pub_node)
+            synthetic["cluster_name"]  = cname
+            synthetic["cluster_desc"]  = det.get("description", "")
+            synthetic["cluster_notes"] = det.get("notes", "")
+            synthetic["cluster_primary"] = True
+            synthetic["vms"]           = ci.get("vms", [])
+            synthetic["_parent"]       = None  # no cable in lab topology
+            seen_clusters[cname] = {
+                "name":  cname,
+                "desc":  det.get("description", ""),
+                "notes": det.get("notes", ""),
+                "nodes": [synthetic],
+                "vms":   ci.get("vms", []),
+            }
+            print(f"[INFO] Added public docker_host cluster '{cname}' for diagram generation")
 
         for cname, cdata in seen_clusters.items():
             # Collect ALL switches connected to any cluster node (supports dual-NIC)
