@@ -1,0 +1,17 @@
+[
+  {
+    "name":        "Webex Cloud",
+    "description": "Hybrid Services · Calling · Messaging",
+    "color":       "#0077a8"
+  },
+  {
+    "name":        "Netbox Cloud",
+    "description": "IPAM / DCIM · Free Tier · diagram source",
+    "color":       "#9b59b6"
+  },
+  {
+    "name":        "Microsoft 365",
+    "description": "Exchange · Teams · Hybrid Calendar",
+    "color":       "#0078d4"
+  }
+]

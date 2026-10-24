@@ -10,13 +10,13 @@ network diagram with three visual rows:
   Row 3 (bottom): [           Home Lab           ]
 
 ────────────────────────────────────────────────────────────────────────────
-SAAS SERVICES  (static, configured here – not from Netbox)
+SAAS SERVICES  (static, loaded from data/saas-nodes.json)
 ────────────────────────────────────────────────────────────────────────────
-Edit SAAS_NODES below to add/remove SaaS entries. Each entry:
+Edit data/saas-nodes.json to add/remove SaaS entries. Each entry:
     {
         "name":        "Webex Cloud",           # bold headline
         "description": "Hybrid Services · Calling",  # dim subtitle
-        "color":       "#0077a8",               # optional border accent
+        "color":       "#0077a8"                # optional border accent
     }
 
 These are intentionally static – SaaS cannot be modelled as Netbox devices.
@@ -61,30 +61,18 @@ from collections import defaultdict
 # ══════════════════════════════════════════════════════════════════════════════
 
 # SaaS services displayed in the top-left zone.
-# Not fetched from Netbox – edit this list manually.
-SAAS_NODES: list[dict] = [
-    {
-        "name":        "Webex Cloud",
-        "description": "Hybrid Services · Calling · Messaging",
-        "color":       "#0077a8",
-    },
-    {
-        "name":        "Netbox Cloud",
-        "description": "IPAM / DCIM · Free Tier · diagram source",
-        "color":       "#9b59b6",
-    },
-    {
-        "name":        "Microsoft 365",
-        "description": "Exchange · Teams · Hybrid Calendar",
-        "color":       "#0078d4",
-    },
-    # Add more SaaS entries here, e.g.:
-    # {
-    #     "name":        "cron-job.org",
-    #     "description": "Nagios heartbeat scheduler",
-    #     "color":       "#ff8c42",
-    # },
-]
+# Loaded from data/saas-nodes.json — edit that file, not this script.
+_SAAS_JSON = os.path.join(os.path.dirname(__file__), "..", "data", "saas-nodes.json")
+try:
+    with open(_SAAS_JSON, encoding="utf-8") as _f:
+        SAAS_NODES: list[dict] = json.load(_f)
+    print(f"[INFO] Loaded {len(SAAS_NODES)} SaaS node(s) from data/saas-nodes.json")
+except FileNotFoundError:
+    print(f"[WARN] data/saas-nodes.json not found — SaaS zone will be empty")
+    SAAS_NODES = []
+except Exception as _e:
+    print(f"[WARN] Failed to load data/saas-nodes.json: {_e} — SaaS zone will be empty")
+    SAAS_NODES = []
 
 # Root device for Home Lab topology BFS (first in diagram, all others sorted by cable distance)
 HOMELAB_ROOT = "UXG-Fiber"
