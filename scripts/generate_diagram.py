@@ -358,6 +358,9 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
         if docker_host_name in seen_lab:
             print(f"[DEBUG] docker_host '{docker_host_name}' already in lab_nodes — skipping injection")
             continue
+        if docker_host_name in seen_pub:
+            print(f"[DEBUG] docker_host '{docker_host_name}' is a public node — skipping lab injection")
+            continue
         # Device-first lookup
         raw_host = dev_by_name.get(docker_host_name)
         host_source = "device"
