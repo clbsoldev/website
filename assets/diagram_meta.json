@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-10-26 22:17 UTC",
+  "generated_at": "2026-11-03 00:30 UTC",
   "source": "netbox",
   "saas_count": 3,
-  "device_count": 42,
+  "device_count": 44,
   "pub_nodes": 3,
   "lab_nodes": 15,
   "vm_count": 10,
@@ -56,7 +56,7 @@
       "nodes": [
         "oci-fra-app01"
       ],
-      "vm_count": 1,
+      "vm_count": 3,
       "svg": "assets/diagram-cluster-docker_oci-fra-app01.svg",
       "png": "assets/diagram-cluster-docker_oci-fra-app01.png"
     }
