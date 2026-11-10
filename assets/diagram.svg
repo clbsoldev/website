@@ -35,7 +35,7 @@
 <text x="498" y="116" text-anchor="middle" fill="#5a7a94" font-size="7">Calendar</text>
 <rect x="608" y="28" width="564" height="120" rx="2" fill="none" stroke="#ff8c42" stroke-width="1" stroke-dasharray="4,4"/>
 <text x="618" y="43" fill="#ff8c42" font-size="8" letter-spacing="2">PUBLIC INFRASTRUCTURE</text>
-<rect x="617" y="62" width="170" height="72" rx="2" fill="#0a0e14" stroke="#3a4a5a" stroke-width="1"/>
+<rect x="617" y="62" width="170" height="72" rx="2" fill="#0a0e14" stroke="#ff8c42" stroke-width="1"/>
 <text x="702" y="88" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-app01</text>
 <text x="702" y="105" text-anchor="middle" fill="#5a7a94" font-size="7">Docker Host for Central</text>
 <text x="702" y="116" text-anchor="middle" fill="#5a7a94" font-size="7">Services</text>
@@ -109,6 +109,10 @@
 <rect x="411" y="1240" width="170" height="72" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="496" y="1272" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">2N IP Uni</text>
 <text x="496" y="1289" text-anchor="middle" fill="#5a7a94" font-size="7">2N Intercom</text>
+<line x1="702" y1="134" x2="600" y2="316" stroke="#00d4ff" stroke-width="2.5" stroke-dasharray="6,4" opacity="1"/>
+<rect x="578" y="212" width="146" height="27" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
+<text x="651" y="223" text-anchor="middle" fill="#00d4ff" font-size="7" font-weight="600" letter-spacing="0.5">[WG] oci-fra-app01</text>
+<text x="651" y="234" text-anchor="middle" fill="#5a7a94" font-size="6">Access to Central Services</text>
 <line x1="890" y1="134" x2="600" y2="316" stroke="#00d4ff" stroke-width="2.5" stroke-dasharray="6,4" opacity="1"/>
 <rect x="645" y="212" width="201" height="27" rx="2" fill="#0a0e14" stroke="#00d4ff" stroke-width="1"/>
 <text x="745" y="223" text-anchor="middle" fill="#00d4ff" font-size="7" font-weight="600" letter-spacing="0.5">[WG] vps-edge01</text>

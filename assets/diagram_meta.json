@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-03 00:30 UTC",
+  "generated_at": "2026-11-10 01:10 UTC",
   "source": "netbox",
   "saas_count": 3,
   "device_count": 44,
@@ -7,7 +7,7 @@
   "lab_nodes": 15,
   "vm_count": 10,
   "cable_count": 13,
-  "tunnel_count": 1,
+  "tunnel_count": 2,
   "tunnel_source": "netbox",
   "clusters": [
     {
