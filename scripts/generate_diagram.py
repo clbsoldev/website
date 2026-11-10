@@ -101,6 +101,10 @@ TAG_NO_VMS         = "diagram-no-vms"
 TAG_CLUSTER_EXCLUDE = "diagram-cluster-exclude"  # skip this cluster in --cluster-diagrams
 TAG_CLUSTER_NO_BOX  = "diagram-cluster-no-box"   # render cluster as solo node in main diagram
 
+# Netbox statuses that are never drawn (decommissioned objects).
+# offline / planned / staged / failed stay visible with a grey border.
+HIDDEN_STATUSES = {"decommissioning"}
+
 # ── Static fallback (when Netbox is unreachable / no tagged devices) ──────────
 FALLBACK_PUBLIC: list[dict] = [
     {"name": "VPS · Monitoring",  "description": "Nagios Core · cron-job.org heartbeat", "status": "active", "vms": [], "cluster_id": None, "no_vms": True},
@@ -175,6 +179,10 @@ def _tags(obj: dict) -> set[str]:
 def _str(obj: dict | None, key: str) -> str:
     return ((obj or {}).get(key) or "").strip()
 
+def _is_hidden(d: dict) -> bool:
+    """True if the Netbox object has a status that should not appear in diagrams."""
+    return _str(d.get("status"), "value") in HIDDEN_STATUSES
+
 def _make_node(d: dict, tags: set[str], source: str = "device") -> dict:
     """Build a unified node dict from a Netbox device or VM record."""
     role_field = "device_role" if source == "device" else "role"
@@ -233,13 +241,13 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
     seen_pub: set[str] = set()
     for d in raw_pub_dev:
         tags = _tags(d)
-        if TAG_EXCLUDE in tags or d.get("name") in seen_pub:
+        if TAG_EXCLUDE in tags or d.get("name") in seen_pub or _is_hidden(d):
             continue
         seen_pub.add(d["name"])
         pub_nodes.append(_make_node(d, tags, source="device"))
     for d in raw_pub_vm:
         tags = _tags(d)
-        if TAG_EXCLUDE in tags or d.get("name") in seen_pub:
+        if TAG_EXCLUDE in tags or d.get("name") in seen_pub or _is_hidden(d):
             continue
         seen_pub.add(d["name"])
         pub_nodes.append(_make_node(d, tags, source="vm"))
@@ -252,7 +260,7 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
     seen_lab: set[str] = set()
     for d in raw_lab_dev:
         tags = _tags(d)
-        if TAG_EXCLUDE in tags or d.get("name") in seen_lab:
+        if TAG_EXCLUDE in tags or d.get("name") in seen_lab or _is_hidden(d):
             continue
         seen_lab.add(d["name"])
         lab_nodes_raw.append(_make_node(d, tags, source="device"))
@@ -262,7 +270,7 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
     # as children of their cluster host — adding them here would cause duplicates.
     for d in raw_lab_vm:
         tags = _tags(d)
-        if TAG_EXCLUDE in tags or d.get("name") in seen_lab:
+        if TAG_EXCLUDE in tags or d.get("name") in seen_lab or _is_hidden(d):
             continue
         # Skip VMs that belong to a cluster — they appear via cluster_info
         if (d.get("cluster") or {}).get("id"):
@@ -325,6 +333,10 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
                         "no_box":      det.get("no_box", False),
                         "vms":         [],
                     }
+                if _is_hidden(vm):
+                    print(f"[DEBUG] Hiding VM '{vm.get('name')}' "
+                          f"(status {_str(vm.get('status'), 'value')}) in cluster '{cname}'")
+                    continue
                 cluster_info[cid]["vms"].append({
                     "name":         vm.get("name") or "unnamed-vm",
                     "display_name": (vm.get("custom_fields") or {}).get("diagram_name") or vm.get("name") or "unnamed-vm",
@@ -363,7 +375,7 @@ def fetch_all() -> tuple[list[dict], list[dict], list[tuple[str,str]], list[tupl
             print(f"[WARN] docker_host '{docker_host_name}' not found in devices or VMs")
             continue
         host_tags = _tags(raw_host)
-        if TAG_EXCLUDE in host_tags:
+        if TAG_EXCLUDE in host_tags or _is_hidden(raw_host):
             continue
         node = _make_node(raw_host, host_tags, source=host_source)
         node["cluster_id"]   = cid
