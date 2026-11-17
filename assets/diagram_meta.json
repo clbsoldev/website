@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-11-10 11:08 UTC",
+  "generated_at": "2026-11-17 01:34 UTC",
   "source": "netbox",
   "saas_count": 3,
-  "device_count": 44,
+  "device_count": 47,
   "pub_nodes": 3,
   "lab_nodes": 15,
-  "vm_count": 10,
+  "vm_count": 9,
   "cable_count": 13,
   "tunnel_count": 2,
   "tunnel_source": "netbox",
@@ -30,7 +30,7 @@
       "nodes": [
         "hau-app01"
       ],
-      "vm_count": 4,
+      "vm_count": 3,
       "svg": "assets/diagram-cluster-docker_hau-app01.svg",
       "png": "assets/diagram-cluster-docker_hau-app01.png"
     },
@@ -56,7 +56,7 @@
       "nodes": [
         "oci-fra-app01"
       ],
-      "vm_count": 2,
+      "vm_count": 6,
       "svg": "assets/diagram-cluster-docker_oci-fra-app01.svg",
       "png": "assets/diagram-cluster-docker_oci-fra-app01.png"
     }
