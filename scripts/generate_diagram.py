@@ -577,7 +577,7 @@ C = {
     "bg":     "#0a0e14", "surface": "#111620", "border": "#1e2a3a",
     "pub":    "#ff8c42", "lab":     "#00e5a0",  "saas":  "#1e2a3a",
     "acc":    "#00d4ff", "dim":     "#5a7a94",  "head":  "#e8f4ff",
-    "off":    "#3a4a5a", "cable":   "#2a3a4a",
+    "off":    "#3a4a5a", "cable":   "#7fa8c9", "link": "#5c8099",
     "vm_bdr": "#2a3a4a", "vm_bg":   "#0d1219",
 }
 
@@ -1061,7 +1061,7 @@ def build_svg(
     for zcx in [saas_x + SAAS_W//2, pub_x + PUB_W//2]:
         inet_elems.append(
             f'<line x1="{zcx}" y1="{top_y+top_h}" x2="{inet_cx}" y2="{inet_cy-26}" '
-            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
+            f'stroke="{C["link"]}" stroke-width="1.75" stroke-dasharray="6,4"/>')
     # Note: Internet → UXG-Fiber connector is drawn after the lab is rendered
     # (added to conn_lines once UXG card position is known)
 
@@ -1102,7 +1102,7 @@ def build_svg(
                         conn_lines.append(
                             f'<line x1="{ccx}" y1="{card_y}" '
                             f'x2="{inet_cx}" y2="{inet_cy+26}" '
-                            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="3,3"/>')
+                            f'stroke="{C["link"]}" stroke-width="1.75" stroke-dasharray="6,4"/>')
                         # Remove the generic inet→lab_y line from inet_elems (last element)
                         # by replacing it with a no-op; the UXG connector replaces it
 
@@ -1116,14 +1116,14 @@ def build_svg(
                         conn_lines.append(
                             f'<line x1="{ccx}" y1="{card_y+DH}" '
                             f'x2="{ccx}" y2="{vm_y}" '
-                            f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+                            f'stroke="{C["link"]}" stroke-width="1.75" stroke-dasharray="6,3"/>')
                         for k, vm in enumerate(vms):
                             vx  = vm_x0 + k*(VM_W+VM_HGAP)
                             vcx = vx + VM_W//2
                             conn_lines.append(
                                 f'<line x1="{ccx}" y1="{vm_y}" '
                                 f'x2="{vcx}" y2="{vm_y}" '
-                                f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+                                f'stroke="{C["link"]}" stroke-width="1.75" stroke-dasharray="6,3"/>')
                             render_vm_card(vx, vm_y, vm)
                             rendered_vms.add(vm["name"])
 
@@ -1184,7 +1184,7 @@ def build_svg(
                             conn_lines.append(
                                 f'<line x1="{vcx}" y1="{vm_y}" '
                                 f'x2="{icx}" y2="{box_bottom}" '
-                                f'stroke="{C["border"]}" stroke-width="1" stroke-dasharray="2,2"/>')
+                                f'stroke="{C["link"]}" stroke-width="1.75" stroke-dasharray="6,3"/>')
                             render_vm_card(vx, vm_y, vm)
                             rendered_vms.add(vm["name"])
 
@@ -1204,7 +1204,7 @@ def build_svg(
                 ay_e, by2_e = ay, by2   # same row, side connection
             conn_lines.append(
                 f'<line x1="{ax}" y1="{ay_e}" x2="{bx2}" y2="{by2_e}" '
-                f'stroke="{C["cable"]}" stroke-width="2" opacity="0.85"/>')
+                f'stroke="{C["cable"]}" stroke-width="2.5"/>')
 
     # ── VPN tunnels ────────────────────────────────────────────────────────────
     tunnel_elems: list[str] = []
@@ -1436,14 +1436,14 @@ def build_cluster_svg(
             conn_lines.append(
                 f'<line x1="{px}" y1="{py + CH//2}" '
                 f'x2="{ccx}" y2="{cy_top}" '
-                f'stroke="{C["cable"]}" stroke-width="2" opacity="0.85"/>')
+                f'stroke="{C["cable"]}" stroke-width="2.5"/>')
 
     total_lines = sum(len(v) for v in parent_to_nodes.values())
     print(f"[DEBUG] Cluster '{cluster_name}': {n_nodes} nodes, "
           f"{len(parent_to_nodes)} parent(s), {total_lines} cable line(s)")
     if vms:
         box_bot = box_y + box_h
-        dash = f'stroke="{C["border"]}" stroke-width="1.5" stroke-dasharray="2,2"'
+        dash = f'stroke="{C["link"]}" stroke-width="2" stroke-dasharray="6,3"'
         if n_rows == 1:
             vm_xs = _xs(len(vms), PAD, ZW, VMW, GAP)
             for k, vm in enumerate(vms):
