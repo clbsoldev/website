@@ -1367,7 +1367,13 @@ def build_cluster_svg(
     box_y    = ctx_y + ctx_h + (VGAP2 if context_nodes else 0)
 
     vm_y     = box_y + box_h + VGAP2
-    vm_h     = VMH if vms else 0
+    # Wrap VMs/containers into balanced rows so they never overflow the canvas
+    ROW_GAP  = 36
+    per_row_max = max(1, (ZW + GAP) // (VMW + GAP))
+    n_rows   = max(1, -(-len(vms) // per_row_max)) if vms else 0
+    per_row  = -(-len(vms) // n_rows) if vms else 0
+    vm_rows  = [vms[i:i + per_row] for i in range(0, len(vms), per_row)] if vms else []
+    vm_h     = (n_rows * VMH + (n_rows - 1) * ROW_GAP) if vms else 0
 
     H = vm_y + vm_h + PAD + 8
 
@@ -1436,17 +1442,36 @@ def build_cluster_svg(
     print(f"[DEBUG] Cluster '{cluster_name}': {n_nodes} nodes, "
           f"{len(parent_to_nodes)} parent(s), {total_lines} cable line(s)")
     if vms:
-        box_cx  = box_x + box_w//2
         box_bot = box_y + box_h
-        vm_xs   = _xs(len(vms), PAD, ZW, VMW, GAP)
-        # One line per VM: from cluster box bottom-center to each VM top-center
-        for k, vm in enumerate(vms):
-            vcx = vm_xs[k] + VMW//2
+        dash = f'stroke="{C["border"]}" stroke-width="1.5" stroke-dasharray="2,2"'
+        if n_rows == 1:
+            vm_xs = _xs(len(vms), PAD, ZW, VMW, GAP)
+            for k, vm in enumerate(vms):
+                vcx = vm_xs[k] + VMW//2
+                conn_lines.append(
+                    f'<line x1="{box_cx}" y1="{box_bot}" x2="{vcx}" y2="{vm_y}" {dash}/>')
+                _vm_card(vm_xs[k], vm_y, vm)
+        else:
+            # Bus layout: trunk left of the cards, one horizontal bus per row
+            row_xs = [_xs(len(r), PAD, ZW, VMW, GAP) for r in vm_rows]
+            trunk_x = max(8, min(xs[0] for xs in row_xs) - 14)
+            bus0_y = vm_y - VGAP2 // 2
+            last_bus_y = vm_y + (n_rows - 1) * (VMH + ROW_GAP) - ROW_GAP // 2
             conn_lines.append(
-                f'<line x1="{box_cx}" y1="{box_bot}" '
-                f'x2="{vcx}" y2="{vm_y}" '
-                f'stroke="{C["border"]}" stroke-width="1.5" stroke-dasharray="2,2"/>')
-            _vm_card(vm_xs[k], vm_y, vm)
+                f'<line x1="{box_cx}" y1="{box_bot}" x2="{box_cx}" y2="{bus0_y}" {dash}/>')
+            conn_lines.append(
+                f'<line x1="{trunk_x}" y1="{bus0_y}" x2="{trunk_x}" y2="{last_bus_y}" {dash}/>')
+            for r, (row, xs) in enumerate(zip(vm_rows, row_xs)):
+                ry = vm_y + r * (VMH + ROW_GAP)
+                bus_y = bus0_y if r == 0 else ry - ROW_GAP // 2
+                right = max(box_cx, xs[-1] + VMW//2) if r == 0 else xs[-1] + VMW//2
+                conn_lines.append(
+                    f'<line x1="{trunk_x}" y1="{bus_y}" x2="{right}" y2="{bus_y}" {dash}/>')
+                for k, vm in enumerate(row):
+                    vcx = xs[k] + VMW//2
+                    conn_lines.append(
+                        f'<line x1="{vcx}" y1="{bus_y}" x2="{vcx}" y2="{ry}" {dash}/>')
+                    _vm_card(xs[k], ry, vm)
 
     final: list[str] = svg[:2] + conn_lines + svg[2:]
     final.append('</svg>')
