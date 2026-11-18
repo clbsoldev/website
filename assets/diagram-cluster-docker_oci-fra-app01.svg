@@ -1,15 +1,15 @@
 <svg viewBox="0 0 960 388" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
 <rect width="960" height="388" fill="#0a0e14"/>
-<line x1="480" y1="172" x2="480" y2="192" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="208" y1="192" x2="208" y2="280" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="208" y1="192" x2="658" y2="192" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="302" y1="192" x2="302" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="480" y1="192" x2="480" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="658" y1="192" x2="658" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="208" y1="280" x2="658" y2="280" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="302" y1="280" x2="302" y2="298" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="480" y1="280" x2="480" y2="298" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="658" y1="280" x2="658" y2="298" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<line x1="480" y1="172" x2="480" y2="192" stroke="#5c8099" stroke-width="2" stroke-dasharray="6,3"/>
+<line x1="208" y1="192" x2="208" y2="280" stroke="#5c8099" stroke-width="2" stroke-dasharray="6,3"/>
+<line x1="208" y1="192" x2="658" y2="192" stroke="#5c8099" stroke-width="2" stroke-dasharray="6,3"/>
+<line x1="302" y1="192" x2="302" y2="212" stroke="#5c8099" stroke-width="2" stroke-dasharray="6,3"/>
+<line x1="480" y1="192" x2="480" y2="212" stroke="#5c8099" stroke-width="2" stroke-dasharray="6,3"/>
+<line x1="658" y1="192" x2="658" y2="212" stroke="#5c8099" stroke-width="2" stroke-dasharray="6,3"/>
+<line x1="208" y1="280" x2="658" y2="280" stroke="#5c8099" stroke-width="2" stroke-dasharray="6,3"/>
+<line x1="302" y1="280" x2="302" y2="298" stroke="#5c8099" stroke-width="2" stroke-dasharray="6,3"/>
+<line x1="480" y1="280" x2="480" y2="298" stroke="#5c8099" stroke-width="2" stroke-dasharray="6,3"/>
+<line x1="658" y1="280" x2="658" y2="298" stroke="#5c8099" stroke-width="2" stroke-dasharray="6,3"/>
 <rect x="339" y="32" width="282" height="140" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
 <text x="480" y="50" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600" letter-spacing="0.5">docker_oci-fra-app01</text>
 <text x="480" y="62" text-anchor="middle" fill="#5a7a94" font-size="7">Hosting of Central Docker Containers</text>
