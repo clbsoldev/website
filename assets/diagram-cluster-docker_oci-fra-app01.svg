@@ -1,35 +1,39 @@
-<svg viewBox="0 0 960 302" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
-<rect width="960" height="302" fill="#0a0e14"/>
-<line x1="480" y1="172" x2="112" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="480" y1="172" x2="290" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="480" y1="172" x2="468" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="480" y1="172" x2="646" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="480" y1="172" x2="824" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
-<line x1="480" y1="172" x2="1002" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<svg viewBox="0 0 960 388" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, monospace">
+<rect width="960" height="388" fill="#0a0e14"/>
+<line x1="480" y1="172" x2="480" y2="192" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<line x1="208" y1="192" x2="208" y2="280" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<line x1="208" y1="192" x2="658" y2="192" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<line x1="302" y1="192" x2="302" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<line x1="480" y1="192" x2="480" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<line x1="658" y1="192" x2="658" y2="212" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<line x1="208" y1="280" x2="658" y2="280" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<line x1="302" y1="280" x2="302" y2="298" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<line x1="480" y1="280" x2="480" y2="298" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
+<line x1="658" y1="280" x2="658" y2="298" stroke="#1e2a3a" stroke-width="1.5" stroke-dasharray="2,2"/>
 <rect x="339" y="32" width="282" height="140" rx="3" fill="none" stroke="#00e5a0" stroke-width="1.5" stroke-dasharray="4,3"/>
 <text x="480" y="50" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600" letter-spacing="0.5">docker_oci-fra-app01</text>
 <text x="480" y="62" text-anchor="middle" fill="#5a7a94" font-size="7">Hosting of Central Docker Containers</text>
 <rect x="385" y="76" width="190" height="80" rx="2" fill="#0a0e14" stroke="#00e5a0" stroke-width="1"/>
 <text x="480" y="113" text-anchor="middle" fill="#e8f4ff" font-size="10" font-weight="600">oci-fra-app01</text>
 <text x="480" y="130" text-anchor="middle" fill="#5a7a94" font-size="7">Docker Host for Central Services</text>
-<rect x="32" y="212" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="112" y="229" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-aaa01</text>
-<text x="112" y="244" text-anchor="middle" fill="#5a7a94" font-size="7">Central Free Radius for</text>
-<text x="112" y="254" text-anchor="middle" fill="#5a7a94" font-size="7">802.1x</text>
-<rect x="210" y="212" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="290" y="235" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Docker Host</text>
-<text x="290" y="247" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Statuspage</text>
-<rect x="388" y="212" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="468" y="241" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-log01</text>
-<rect x="566" y="212" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="646" y="229" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-mon02</text>
-<text x="646" y="244" text-anchor="middle" fill="#5a7a94" font-size="7">Monitors OCI Always-Free</text>
-<text x="646" y="254" text-anchor="middle" fill="#5a7a94" font-size="7">instances for idle-</text>
-<rect x="744" y="212" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="824" y="234" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-sca01</text>
-<text x="824" y="249" text-anchor="middle" fill="#5a7a94" font-size="7">Sub CA</text>
-<rect x="922" y="212" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
-<text x="1002" y="229" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Admin Web Browser</text>
-<text x="1002" y="244" text-anchor="middle" fill="#5a7a94" font-size="7">Google Chrome Container</text>
-<text x="1002" y="254" text-anchor="middle" fill="#5a7a94" font-size="7">for Central Access to</text>
+<rect x="222" y="212" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="302" y="229" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-aaa01</text>
+<text x="302" y="244" text-anchor="middle" fill="#5a7a94" font-size="7">Central Free Radius for</text>
+<text x="302" y="254" text-anchor="middle" fill="#5a7a94" font-size="7">802.1x</text>
+<rect x="400" y="212" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="480" y="235" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Docker Host</text>
+<text x="480" y="247" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Statuspage</text>
+<rect x="578" y="212" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="658" y="241" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-log01</text>
+<rect x="222" y="298" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="302" y="315" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-mon02</text>
+<text x="302" y="330" text-anchor="middle" fill="#5a7a94" font-size="7">Monitors OCI Always-Free</text>
+<text x="302" y="340" text-anchor="middle" fill="#5a7a94" font-size="7">instances for idle-</text>
+<rect x="400" y="298" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="480" y="320" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-sca01</text>
+<text x="480" y="335" text-anchor="middle" fill="#5a7a94" font-size="7">Sub CA</text>
+<rect x="578" y="298" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<text x="658" y="315" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Admin Web Browser</text>
+<text x="658" y="330" text-anchor="middle" fill="#5a7a94" font-size="7">Google Chrome Container</text>
+<text x="658" y="340" text-anchor="middle" fill="#5a7a94" font-size="7">for Central Access to</text>
 </svg>
