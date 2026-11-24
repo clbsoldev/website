@@ -32,7 +32,7 @@
 <rect x="400" y="298" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
 <text x="480" y="320" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">oci-fra-sca01</text>
 <text x="480" y="335" text-anchor="middle" fill="#5a7a94" font-size="7">Sub CA</text>
-<rect x="578" y="298" width="160" height="50" rx="2" fill="#0d1219" stroke="#3a4a5a" stroke-width="1" stroke-dasharray="2,2"/>
+<rect x="578" y="298" width="160" height="50" rx="2" fill="#0d1219" stroke="#00e5a0" stroke-width="1" stroke-dasharray="2,2"/>
 <text x="658" y="315" text-anchor="middle" fill="#e8f4ff" font-size="9" font-weight="600">Admin Web Browser</text>
 <text x="658" y="330" text-anchor="middle" fill="#5a7a94" font-size="7">Google Chrome Container</text>
 <text x="658" y="340" text-anchor="middle" fill="#5a7a94" font-size="7">for Central Access to</text>
